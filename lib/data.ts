@@ -29,7 +29,7 @@ export const ROOMS = [
 ];
 
 export const TEACHERS = [
-    { id: "t1", name: "M. Dupont", subject: "Mathématiques", photo: "eh.png", iuense: "ENS001", username: "m.dupont", password: "password123", email: "dupont@ecole.com", phone: "98111222", diploma: "Mastère en Mathématiques", gender: "m" },
-    { id: "t2", name: "Mme. Martin", subject: "Français", photo: "ef.png", iuense: "ENS002", username: "mme.martin", password: "password123", email: "martin@ecole.com", phone: "55333444", diploma: "CAPES Français", gender: "f" },
-    { id: "t3", name: "M. Ben Ali", subject: "Physique", photo: "eh.png", iuense: "ENS003", username: "m.benali", password: "password123", email: "benali@ecole.com", phone: "22555666", diploma: "Doctorat en Physique", gender: "m" },
+    { id: "t1", name: "M. Dupont", subject: "Mathématiques", photo: "homme.png", iuense: "ENS001", username: "m.dupont", password: "password123", email: "dupont@ecole.com", phone: "98111222", diploma: "Mastère en Mathématiques", gender: "m" },
+    { id: "t2", name: "Mme. Martin", subject: "Français", photo: "femme.png", iuense: "ENS002", username: "mme.martin", password: "password123", email: "martin@ecole.com", phone: "55333444", diploma: "CAPES Français", gender: "f" },
+    { id: "t3", name: "M. Ben Ali", subject: "Physique", photo: "homme.png", iuense: "ENS003", username: "m.benali", password: "password123", email: "benali@ecole.com", phone: "22555666", diploma: "Doctorat en Physique", gender: "m" },
 ];
