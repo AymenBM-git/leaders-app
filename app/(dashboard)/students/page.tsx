@@ -2,16 +2,26 @@
 
 import { useState } from "react";
 import { STUDENTS, CLASSES, PARENTS } from "@/lib/data";
-import { Search, Plus, Filter, MoreHorizontal, User, Eye, Phone } from "lucide-react";
+import { Search, Plus, Filter, MoreHorizontal, User, Eye, Phone, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
 export default function StudentsPage() {
+    const [students, setStudents] = useState(STUDENTS);
     const [searchTerm, setSearchTerm] = useState("");
+    const [selectedClass, setSelectedClass] = useState("");
 
-    const filteredStudents = STUDENTS.filter(student =>
-        student.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const handleDelete = (id: string) => {
+        if (window.confirm("Êtes-vous sûr de vouloir supprimer cet élève ?")) {
+            setStudents(students.filter(s => s.id !== id));
+        }
+    };
+
+    const filteredStudents = students.filter(student => {
+        const matchesSearch = `${student.firstName} ${student.lastName}`.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesClass = selectedClass ? student.classId === selectedClass : true;
+        return matchesSearch && matchesClass;
+    });
 
     return (
         <div className="space-y-8">
@@ -40,14 +50,24 @@ export default function StudentsPage() {
                     />
                 </div>
                 <div className="flex gap-2 w-full md:w-auto">
-                    <button className="px-4 py-2 bg-slate-50 text-slate-600 rounded-xl font-medium hover:bg-slate-100 flex items-center gap-2 border border-slate-200/50">
-                        <Filter className="w-4 h-4" />
-                        <span>Classe</span>
-                    </button>
+                    <div className="relative">
+                        <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4" />
+                        <select
+                            value={selectedClass}
+                            onChange={(e) => setSelectedClass(e.target.value)}
+                            className="appearance-none pl-10 pr-8 py-2 bg-slate-50 text-slate-600 rounded-xl font-medium hover:bg-slate-100 border border-slate-200/50 outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer"
+                        >
+                            <option value="">Toutes les classes</option>
+                            {CLASSES.map(c => (
+                                <option key={c.id} value={c.id}>{c.name}</option>
+                            ))}
+                        </select>
+                    </div>
+                    {/*
                     <button className="px-4 py-2 bg-slate-50 text-slate-600 rounded-xl font-medium hover:bg-slate-100 flex items-center gap-2 border border-slate-200/50">
                         <Filter className="w-4 h-4" />
                         <span>Statut</span>
-                    </button>
+                    </button>*/}
                 </div>
             </div>
 
@@ -60,7 +80,7 @@ export default function StudentsPage() {
                                 <th className="p-4 text-xs font-semibold uppercase text-slate-500 tracking-wider">Élève</th>
                                 <th className="p-4 text-xs font-semibold uppercase text-slate-500 tracking-wider">Classe</th>
                                 <th className="p-4 text-xs font-semibold uppercase text-slate-500 tracking-wider">Parent</th>
-                                <th className="p-4 text-xs font-semibold uppercase text-slate-500 tracking-wider">Statut</th>
+                                {/*<th className="p-4 text-xs font-semibold uppercase text-slate-500 tracking-wider">Statut</th>*/}
                                 <th className="p-4 text-xs font-semibold uppercase text-slate-500 tracking-wider text-right">Actions</th>
                             </tr>
                         </thead>
@@ -81,9 +101,11 @@ export default function StudentsPage() {
                                             <div className="flex items-center gap-3">
                                                 <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden border-2 border-white shadow-sm">
                                                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                    <img src={student.photo} alt={student.name} className="w-full h-full object-cover" />
+                                                    <img src={student.photo} alt={`${student.firstName} ${student.lastName}`} className="w-full h-full object-cover" />
                                                 </div>
-                                                <span className="font-semibold text-slate-700">{student.name}</span>
+                                                <Link href={`/students/${student.id}`} className="font-bold text-slate-600 text-lg hover:text-indigo-600 transition-colors">
+                                                    <span >{student.firstName} {student.lastName}</span>
+                                                </Link>
                                             </div>
                                         </td>
                                         <td className="p-4">
@@ -103,7 +125,7 @@ export default function StudentsPage() {
                                                 <span className="text-slate-400 text-sm">Non assigné</span>
                                             )}
                                         </td>
-                                        <td className="p-4">
+                                        {/*<td className="p-4">
                                             <span className={cn(
                                                 "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border",
                                                 student.status === "Actif" ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-red-50 text-red-700 border-red-100"
@@ -111,14 +133,18 @@ export default function StudentsPage() {
                                                 <span className={cn("w-1.5 h-1.5 rounded-full", student.status === "Actif" ? "bg-emerald-500" : "bg-red-500")} />
                                                 {student.status}
                                             </span>
-                                        </td>
+                                        </td>*/}
                                         <td className="p-4 text-right">
                                             <div className="flex items-center justify-end gap-2">
                                                 <Link href={`/students/${student.id}`} className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded-lg transition-all" title="Voir profil">
                                                     <Eye className="w-4 h-4" />
                                                 </Link>
-                                                <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all">
-                                                    <MoreHorizontal className="w-4 h-4" />
+                                                <button
+                                                    onClick={() => handleDelete(student.id)}
+                                                    className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                                                    title="Supprimer"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
                                                 </button>
                                             </div>
                                         </td>

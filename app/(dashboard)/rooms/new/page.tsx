@@ -56,7 +56,6 @@ export default function NewRoomPage() {
                                 <option value="Classroom">Salle de Classe</option>
                                 <option value="Laboratory">Laboratoire</option>
                                 <option value="Amphitheater">Amphithéâtre</option>
-                                <option value="Office">Bureau</option>
                             </select>
                         </div>
                         <div className="space-y-2">
@@ -78,7 +77,6 @@ export default function NewRoomPage() {
                         <select className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm">
                             <option value="Available">Disponible</option>
                             <option value="Maintenance">Maintenance</option>
-                            <option value="Occupied">Occupée</option>
                         </select>
                     </div>
                 </div>

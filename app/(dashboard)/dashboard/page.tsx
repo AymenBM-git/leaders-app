@@ -1,41 +1,42 @@
 import { Users, UserCheck, GraduationCap, School } from "lucide-react";
-
-const stats = [
-    {
-        label: "Total Élèves",
-        value: "1,234",
-        icon: GraduationCap,
-        change: "+12%",
-        color: "text-violet-600",
-        bg: "bg-violet-100",
-    },
-    {
-        label: "Enseignants",
-        value: "84",
-        icon: UserCheck,
-        change: "+4%",
-        color: "text-emerald-600",
-        bg: "bg-emerald-100",
-    },
-    {
-        label: "Parents",
-        value: "950",
-        icon: Users,
-        change: "+8%",
-        color: "text-pink-600",
-        bg: "bg-pink-100",
-    },
-    {
-        label: "Classes",
-        value: "42",
-        icon: School,
-        change: "0%",
-        color: "text-indigo-600",
-        bg: "bg-indigo-100",
-    },
-];
+import { STUDENTS, TEACHERS, PARENTS, CLASSES } from "@/lib/data";
 
 export default function DashboardPage() {
+    const stats = [
+        {
+            label: "Total Élèves",
+            value: STUDENTS.length.toString(),
+            icon: GraduationCap,
+            change: "+12%",
+            color: "text-violet-600",
+            bg: "bg-violet-100",
+        },
+        {
+            label: "Enseignants",
+            value: TEACHERS.length.toString(),
+            icon: UserCheck,
+            change: "+4%",
+            color: "text-emerald-600",
+            bg: "bg-emerald-100",
+        },
+        {
+            label: "Parents",
+            value: PARENTS.length.toString(),
+            icon: Users,
+            change: "+8%",
+            color: "text-pink-600",
+            bg: "bg-pink-100",
+        },
+        {
+            label: "Classes",
+            value: CLASSES.length.toString(),
+            icon: School,
+            change: "0%",
+            color: "text-indigo-600",
+            bg: "bg-indigo-100",
+        },
+    ];
+
     return (
         <div className="space-y-8">
             <div>

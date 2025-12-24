@@ -86,7 +86,7 @@ export default function NewParentPage() {
                                 </div>
                             </div>
                         </div>
-
+                        {/* Address 
                         <div className="mt-6 space-y-2">
                             <label className="text-sm font-medium text-slate-700">Adresse</label>
                             <div className="relative">
@@ -96,6 +96,63 @@ export default function NewParentPage() {
                                     className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 transition-all text-sm resize-none"
                                 />
                             </div>
+                        </div>*/}
+                    </div>
+
+                    <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                        <div className="flex items-center justify-between mb-6">
+                            <h3 className="font-bold text-slate-900 flex items-center gap-2">
+                                <User className="w-5 h-5 text-indigo-500" />
+                                INFORMATION DE COMPTE
+                            </h3>
+                        </div>
+
+                        <div className="space-y-6">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-slate-700">Nom d'utilisateur<span className="text-red-500">*</span></label>
+                                <input
+                                    type="text"
+                                    required
+                                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-slate-700">Mot de passe<span className="text-red-500">*</span></label>
+                                    <input
+                                        type="password"
+                                        required
+                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-slate-700">Confirmation<span className="text-red-500">*</span></label>
+                                    <input
+                                        type="password"
+                                        required
+                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Actions buttons similar to the image provided 
+                            <div className="flex items-center gap-3 mt-4">
+                                <button
+                                    type="button" // Change to submit if this is the main submission trigger, but usually main form submit is elsewhere. The user image showed buttons inside the card.
+                                    className="px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg transition-colors"
+                                    onClick={() => { }} // Might need logic later
+                                >
+                                    Ajouter
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => router.back()}
+                                    className="px-6 py-2.5 border border-slate-300 text-slate-700 font-medium rounded-lg hover:bg-slate-50 transition-colors"
+                                >
+                                    Annuler
+                                </button>
+                            </div>*/}
                         </div>
                     </div>
                 </div>
@@ -103,12 +160,6 @@ export default function NewParentPage() {
                 {/* Children & Actions */}
                 <div className="lg:col-span-1 space-y-6">
                     <div className="sticky top-6">
-                        <div className="bg-pink-50/50 p-6 rounded-2xl border border-pink-100 mb-6">
-                            <h3 className="font-bold text-pink-900 mb-2">Note</h3>
-                            <p className="text-sm text-pink-700/80">
-                                L'association des enfants se fait désormais depuis la fiche de l'élève.
-                            </p>
-                        </div>
                         <button
                             type="submit"
                             disabled={isLoading}

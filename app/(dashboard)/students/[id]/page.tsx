@@ -4,7 +4,7 @@ import { use, useState, useEffect } from "react";
 import { ChevronLeft, Save, Upload, User, Calendar, Mail, Phone, MapPin, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { STUDENTS, PARENTS } from "@/lib/data";
+import { STUDENTS, PARENTS, CLASSES } from "@/lib/data";
 
 export default function StudentDetailsPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
@@ -57,15 +57,16 @@ export default function StudentDetailsPage({ params }: { params: Promise<{ id: s
                 {/* Left Column - Photo & Basic Info */}
                 <div className="lg:col-span-1 space-y-6">
                     <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm text-center">
-                        <div className="w-32 h-32 mx-auto bg-slate-50 rounded-full flex items-center justify-center overflow-hidden border-2 border-slate-200 mb-4 cursor-pointer group relative">
+                        <div className="w-32 h-32 mx-auto bg-slate-50 rounded-full flex items-center justify-center border-2 border-dashed border-slate-200 text-slate-400 mb-4 hover:border-indigo-400 hover:text-indigo-500 transition-colors cursor-pointer group relative overflow-hidden">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={student.photo} alt={student.name} className="w-full h-full object-cover" />
+                            <img src={`../${student.photo}`} alt={`${student.firstName} ${student.lastName}`} className="w-full h-full object-cover" />
                             <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                 <Upload className="w-8 h-8 text-white" />
                             </div>
+                            <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" />
                         </div>
-                        <p className="text-lg font-bold text-slate-900">{student.name}</p>
-                        <p className="text-sm text-slate-500">{student.status}</p>
+                        <p className="text-sm font-medium text-slate-900">Photo de profil</p>
+                        <p className="text-xs text-slate-400 mt-1">JPG, PNG max 2MB</p>
                     </div>
 
                     <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-4">
@@ -77,10 +78,22 @@ export default function StudentDetailsPage({ params }: { params: Promise<{ id: s
                                 defaultValue={student.classId}
                                 className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                             >
-                                <option value="c1">2ème Année A</option>
-                                <option value="c2">2ème Année B</option>
-                                <option value="c3">3ème Année A</option>
+                                {CLASSES.map((c) => (
+                                    <option key={c.id} value={c.id}>{c.name}</option>
+                                ))}
                             </select>
+                        </div>
+                        {/* Date d'inscription 
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-slate-700">Date d'inscription</label>
+                            <div className="relative">
+                                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+                                <input
+                                    type="date"
+                                    defaultValue="2023-09-01"
+                                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
+                                />
+                            </div>
                         </div>
 
                         <div className="space-y-2">
@@ -93,6 +106,27 @@ export default function StudentDetailsPage({ params }: { params: Promise<{ id: s
                                 <option value="Absent">Absent</option>
                                 <option value="Inactif">Inactif</option>
                             </select>
+                        </div>*/}
+
+                        <div className="space-y-2 pt-4 border-t border-slate-50">
+                            <label className="text-sm font-medium text-slate-700">Parent / Tuteur</label>
+                            <div className="relative">
+                                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+                                <select
+                                    defaultValue={student.parentId}
+                                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
+                                >
+                                    <option value="">Sélectionner un parent...</option>
+                                    {PARENTS.map((p) => (
+                                        <option key={p.id} value={p.id}>{p.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="text-right">
+                                <Link href="/parents/new" className="text-xs text-indigo-600 font-medium hover:underline">
+                                    + Créer un nouveau parent
+                                </Link>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -107,10 +141,18 @@ export default function StudentDetailsPage({ params }: { params: Promise<{ id: s
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-700">Nom Complet</label>
+                                <label className="text-sm font-medium text-slate-700">Prénom</label>
                                 <input
                                     type="text"
-                                    defaultValue={student.name}
+                                    defaultValue={student.firstName}
+                                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-slate-700">Nom</label>
+                                <input
+                                    type="text"
+                                    defaultValue={student.lastName}
                                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                                 />
                             </div>
@@ -122,15 +164,22 @@ export default function StudentDetailsPage({ params }: { params: Promise<{ id: s
                                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                                 />
                             </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-slate-700">Genre</label>
+                                <select defaultValue={student.gender} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm">
+                                    <option value="m">Masculin</option>
+                                    <option value="f">Féminin</option>
+                                </select>
+                            </div>
                         </div>
 
                         <div className="mt-6 space-y-2">
-                            <label className="text-sm font-medium text-slate-700">Email</label>
+                            <label className="text-sm font-medium text-slate-700">Identifiant</label>
                             <div className="relative">
-                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+                                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
                                 <input
-                                    type="email"
-                                    defaultValue="student@example.com"
+                                    type="text"
+                                    defaultValue={student.idenelev}
                                     className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                                 />
                             </div>
@@ -141,7 +190,7 @@ export default function StudentDetailsPage({ params }: { params: Promise<{ id: s
                                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
                                 <input
                                     type="tel"
-                                    defaultValue="55123456"
+                                    defaultValue={student.phone}
                                     className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                                 />
                             </div>
@@ -153,7 +202,7 @@ export default function StudentDetailsPage({ params }: { params: Promise<{ id: s
                                 <MapPin className="absolute left-3 top-3 text-slate-400 w-4 h-4" />
                                 <textarea
                                     rows={3}
-                                    defaultValue="123 Rue de l'École, Boumhel"
+                                    defaultValue={student.address}
                                     className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm resize-none"
                                 />
                             </div>

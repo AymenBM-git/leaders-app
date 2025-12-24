@@ -40,7 +40,7 @@ export default function TeachersPage() {
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
-
+                {/** 
                 <div className="flex bg-slate-100 p-1 rounded-xl">
                     <button
                         onClick={() => setViewMode("grid")}
@@ -54,7 +54,7 @@ export default function TeachersPage() {
                     >
                         <List className="w-5 h-5" />
                     </button>
-                </div>
+                </div>*/}
             </div>
 
             {/* Grid View */}
@@ -68,12 +68,12 @@ export default function TeachersPage() {
                             transition={{ delay: index * 0.05 }}
                             className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:border-emerald-100 transition-all group overflow-hidden"
                         >
-                            <div className="h-24 bg-gradient-to-br from-emerald-400 to-teal-500 relative">
+                            {/*<div className="mb-6 h-10 bg-gradient-to-br from-emerald-400 to-teal-500 relative">
                                 <button className="absolute top-2 right-2 p-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-colors">
                                     <MoreHorizontal className="w-5 h-5" />
                                 </button>
-                            </div>
-                            <div className="px-6 pb-6 mt-[-40px]">
+                            </div>*/}
+                            <div className="p-6">
                                 <div className="w-20 h-20 rounded-2xl bg-white p-1 shadow-md mx-auto">
                                     {/* eslint-disable-next-line @next/next/no-img-element */}
                                     <img src={teacher.photo} alt={teacher.name} className="w-full h-full object-cover rounded-xl" />

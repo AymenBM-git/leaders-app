@@ -43,8 +43,20 @@ export default function NewTeacherPage() {
                         <p className="text-sm font-medium text-slate-900">Photo de profil</p>
                     </div>
 
-                    <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+                    {/**<div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-4">
                         <h3 className="font-bold text-slate-900">Informations Professionnelles</h3>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-slate-700">Identifiant Unique</label>
+                            <div className="relative">
+                                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+                                <input
+                                    type="text"
+                                    placeholder="Ex: ENS001"
+                                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm"
+                                />
+                            </div>
+                        </div>
 
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-slate-700">Matière Principale</label>
@@ -71,7 +83,7 @@ export default function NewTeacherPage() {
                                 />
                             </div>
                         </div>
-                    </div>
+                    </div> */}
                 </div>
 
                 <div className="lg:col-span-2 space-y-6">
@@ -100,6 +112,34 @@ export default function NewTeacherPage() {
 
                         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
+                                <label className="text-sm font-medium text-slate-700">Identifiant Unique</label>
+                                <div className="relative">
+                                    <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+                                    <input
+                                        type="text"
+                                        placeholder="Ex: ENS001"
+                                        className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-slate-700">Matière Principale</label>
+                                <div className="relative">
+                                    <BookOpen className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+                                    <select className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm">
+                                        <option value="">Sélectionner...</option>
+                                        <option value="math">Mathématiques</option>
+                                        <option value="physics">Physique</option>
+                                        <option value="french">Français</option>
+                                        <option value="english">Anglais</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
                                 <label className="text-sm font-medium text-slate-700">Email</label>
                                 <div className="relative">
                                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
@@ -116,6 +156,67 @@ export default function NewTeacherPage() {
                                     <input
                                         type="tel"
                                         className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-slate-700">Diplôme</label>
+                            <div className="relative">
+                                <GraduationCap className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+                                <input
+                                    type="text"
+                                    placeholder="Ex: Mastère"
+                                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm"
+                                />
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-slate-700">Genre</label>
+                            <select className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm">
+                                <option value="m">Masculin</option>
+                                <option value="f">Féminin</option>
+                            </select>
+                        </div>
+                        </div>
+
+                    </div>
+
+                    <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                        <div className="flex items-center justify-between mb-6">
+                            <h3 className="font-bold text-slate-900 flex items-center gap-2">
+                                <User className="w-5 h-5 text-indigo-500" />
+                                INFORMATION DE COMPTE
+                            </h3>
+                        </div>
+
+                        <div className="space-y-6">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-slate-700">Nom d'utilisateur<span className="text-red-500">*</span></label>
+                                <input
+                                    type="text"
+                                    required
+                                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-slate-700">Mot de passe<span className="text-red-500">*</span></label>
+                                    <input
+                                        type="password"
+                                        required
+                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-slate-700">Confirmation<span className="text-red-500">*</span></label>
+                                    <input
+                                        type="password"
+                                        required
+                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                                     />
                                 </div>
                             </div>

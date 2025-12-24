@@ -44,7 +44,7 @@ export default function NewClassPage() {
                         <label className="text-sm font-medium text-slate-700">Nom de la Classe</label>
                         <input
                             type="text"
-                            placeholder="Ex: 2ème Année A"
+                            placeholder="Ex: 7ème B"
                             className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                         />
                     </div>
@@ -53,30 +53,12 @@ export default function NewClassPage() {
                         <label className="text-sm font-medium text-slate-700">Niveau</label>
                         <select className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm">
                             <option value="">Sélectionner un niveau...</option>
-                            <option value="1">1ère Année</option>
-                            <option value="2">2ème Année</option>
-                            <option value="3">3ème Année</option>
-                            <option value="4">4ème Année / Bac</option>
+                            <option value="1">7ème Année</option>
+                            <option value="2">8ème Année</option>
+                            <option value="3">9ème Année</option>
                         </select>
                     </div>
 
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-700">Professeur Principal</label>
-                        <select className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm">
-                            <option value="">Sélectionner un enseignant...</option>
-                            <option value="t1">Mr. Ahmed Ben Ali</option>
-                            <option value="t2">Mme. Sarra Smith</option>
-                        </select>
-                    </div>
-
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-700">Salle Principale (Optionnel)</label>
-                        <input
-                            type="text"
-                            placeholder="Ex: Salle 101"
-                            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
-                        />
-                    </div>
                 </div>
 
                 <div className="pt-4 flex justify-end gap-3 border-t border-slate-100 mt-6">

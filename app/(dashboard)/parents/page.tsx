@@ -136,10 +136,10 @@ export default function ParentsPage() {
                                                     >
                                                         <div className="w-8 h-8 rounded-full bg-slate-200 overflow-hidden">
                                                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                            <img src={child.photo} alt={child.name} className="w-full h-full object-cover" />
+                                                            <img src={child.photo} alt={child.firstName + " " + child.lastName} className="w-full h-full object-cover" />
                                                         </div>
                                                         <div>
-                                                            <p className="text-sm font-semibold text-slate-700 group-hover/child:text-indigo-600 transition-colors">{child.name}</p>
+                                                            <p className="text-sm font-semibold text-slate-700 group-hover/child:text-indigo-600 transition-colors">{child.firstName + " " + child.lastName}</p>
                                                             <span className="text-xs text-slate-400">Voir profil</span>
                                                         </div>
                                                         <ChevronDown className="w-4 h-4 ml-auto -rotate-90 text-slate-300 group-hover/child:text-indigo-400" />

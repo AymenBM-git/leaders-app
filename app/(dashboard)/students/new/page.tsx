@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ChevronLeft, Save, Upload, User, Calendar, Mail, Phone, MapPin } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { CLASSES, PARENTS } from "@/lib/data";
 
 export default function NewStudentPage() {
     const router = useRouter();
@@ -54,12 +55,13 @@ export default function NewStudentPage() {
                             <label className="text-sm font-medium text-slate-700">Classe</label>
                             <select className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm">
                                 <option value="">Sélectionner une classe</option>
-                                <option value="c1">2ème Année A</option>
-                                <option value="c2">2ème Année B</option>
-                                <option value="c3">3ème Année A</option>
+                                {CLASSES.map((c) => (
+                                    <option key={c.id} value={c.id}>{c.name}</option>
+                                ))}
                             </select>
                         </div>
 
+                        {/* Date d'inscription  
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-slate-700">Date d'inscription</label>
                             <div className="relative">
@@ -78,7 +80,7 @@ export default function NewStudentPage() {
                                 <option value="inactive">Inactif</option>
                                 <option value="graduated">Diplômé</option>
                             </select>
-                        </div>
+                        </div>*/}
 
                         <div className="space-y-2 pt-4 border-t border-slate-50">
                             <label className="text-sm font-medium text-slate-700">Parent / Tuteur</label>
@@ -86,8 +88,9 @@ export default function NewStudentPage() {
                                 <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
                                 <select className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm">
                                     <option value="">Sélectionner un parent...</option>
-                                    <option value="p1">Ahmed Konzani</option>
-                                    <option value="p2">Sarah Ben Amor</option>
+                                    {PARENTS.map((p) => (
+                                        <option key={p.id} value={p.id}>{p.name}</option>
+                                    ))}
                                 </select>
                             </div>
                             <div className="text-right">
@@ -141,16 +144,17 @@ export default function NewStudentPage() {
                         </div>
 
                         <div className="mt-6 space-y-2">
-                            <label className="text-sm font-medium text-slate-700">Email (Optionnel)</label>
+                            <label className="text-sm font-medium text-slate-700">Identifiant</label>
                             <div className="relative">
-                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+                                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
                                 <input
-                                    type="email"
-                                    placeholder="eleve@ecole.com"
+                                    type="text"
+                                    placeholder="Ex: ELE001"
                                     className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                                 />
                             </div>
                         </div>
+
                         <div className="mt-6 space-y-2">
                             <label className="text-sm font-medium text-slate-700">Téléphone (Optionnel)</label>
                             <div className="relative">
@@ -162,6 +166,7 @@ export default function NewStudentPage() {
                                 />
                             </div>
                         </div>
+
 
                         <div className="mt-6 space-y-2">
                             <label className="text-sm font-medium text-slate-700">Adresse</label>

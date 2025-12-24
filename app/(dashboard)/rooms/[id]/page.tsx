@@ -1,5 +1,5 @@
 "use client";
-
+import { ROOMS } from "@/lib/data";
 import { use, useState } from "react";
 import { ChevronLeft, Save, MapPin, Users, Trash2 } from "lucide-react";
 import Link from "next/link";
@@ -9,6 +9,12 @@ export default function EditRoomPage({ params }: { params: Promise<{ id: string 
     const router = useRouter();
     const unwrappedParams = use(params);
     const [isLoading, setIsLoading] = useState(false);
+
+    const room = ROOMS.find(r => r.id === unwrappedParams.id);
+
+    if (!room) {
+        return <div className="p-8 text-center text-slate-500">Salle non trouvée.</div>;
+    }
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -51,7 +57,7 @@ export default function EditRoomPage({ params }: { params: Promise<{ id: string 
                         <label className="text-sm font-medium text-slate-700">Nom de la Salle</label>
                         <input
                             type="text"
-                            defaultValue="Salle 101"
+                            defaultValue={room.name}
                             className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                         />
                     </div>
@@ -59,11 +65,10 @@ export default function EditRoomPage({ params }: { params: Promise<{ id: string 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-slate-700">Type</label>
-                            <select defaultValue="Classroom" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm">
+                            <select defaultValue={room.type} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm">
                                 <option value="Classroom">Salle de Classe</option>
                                 <option value="Laboratory">Laboratoire</option>
                                 <option value="Amphitheater">Amphithéâtre</option>
-                                <option value="Office">Bureau</option>
                             </select>
                         </div>
                         <div className="space-y-2">
@@ -73,7 +78,7 @@ export default function EditRoomPage({ params }: { params: Promise<{ id: string 
                                 <input
                                     type="number"
                                     min="1"
-                                    defaultValue="30"
+                                    defaultValue={room.capacity}
                                     className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                                 />
                             </div>
@@ -82,10 +87,9 @@ export default function EditRoomPage({ params }: { params: Promise<{ id: string 
 
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-slate-700">Statut</label>
-                        <select defaultValue="Available" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm">
+                        <select defaultValue={room.status} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm">
                             <option value="Available">Disponible</option>
                             <option value="Maintenance">Maintenance</option>
-                            <option value="Occupied">Occupée</option>
                         </select>
                     </div>
                 </div>

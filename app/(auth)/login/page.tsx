@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 export default function LoginPage() {
-    const [role, setRole] = useState<"admin" | "teacher" | null>(null);
+    const [role, setRole] = useState<"admin" | "teacher" | null>("admin");
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
 
@@ -32,7 +32,7 @@ export default function LoginPage() {
                             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-500 flex items-center justify-center">
                                 <School className="text-white w-6 h-6" />
                             </div>
-                            <h1 className="text-xl font-bold text-slate-900">EduManager</h1>
+                            <h1 className="text-xl font-bold text-slate-900">GSI Collège Les Leaders Boumhel</h1>
                         </div>
                         <h2 className="text-3xl font-bold tracking-tight text-slate-900">
                             Bienvenue
@@ -90,12 +90,12 @@ export default function LoginPage() {
                         className="space-y-5"
                     >
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-900">Identifiant / Email</label>
+                            <label className="text-sm font-medium text-slate-900">Identifiant</label>
                             <input
                                 type="text"
                                 required
                                 className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
-                                placeholder="nom.prenom@ecole.com"
+                                placeholder="admin"
                             />
                         </div>
 
@@ -131,7 +131,7 @@ export default function LoginPage() {
                 </div>
 
                 <div className="mt-auto text-center">
-                    <p className="text-slate-400 text-sm">© 2024 Lycée Leaders Boumhel. Tous droits réservés.</p>
+                    <p className="text-slate-400 text-sm">© 2025 Collège Les Leaders Boumhel. Tous droits réservés.</p>
                 </div>
             </div>
 
@@ -165,7 +165,7 @@ export default function LoginPage() {
                             <div className="h-20 bg-emerald-500/20 rounded-lg border border-emerald-500/30"></div>
                             <div className="h-20 bg-indigo-500/20 rounded-lg border border-indigo-500/30"></div>
                         </div>*/}
-                        <img src="img.jpg" alt="" height="150" />
+                        <img src="img.jpg" alt="Collège Les Leaders Boumhel" />
                     </div>
                 </div>
             </div>

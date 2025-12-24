@@ -49,7 +49,7 @@ export default function RoomsPage() {
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
-
+                {/** */}
                 <div className="flex bg-slate-100 p-1 rounded-xl">
                     <button
                         onClick={() => setViewMode("grid")}
@@ -89,7 +89,7 @@ export default function RoomsPage() {
                             <Link href={`/rooms/${room.id}`} className="block">
                                 <h3 className="text-xl font-bold text-slate-900 mb-1 hover:text-indigo-600 transition-colors">{room.name}</h3>
                             </Link>
-                            <p className="text-slate-500 text-sm mb-4">{room.type}</p>
+                            <p className="text-slate-500 text-sm mb-4">{room.type === "Classroom" ? "Salle de Classe" : room.type === "Laboratory" ? "Laboratoire" : "Amphithéâtre"}</p>
 
                             <div className="flex items-center gap-2 text-slate-500 text-sm bg-slate-50 p-2 rounded-lg justify-center">
                                 <Users className="w-4 h-4" />
@@ -118,7 +118,7 @@ export default function RoomsPage() {
                                             {room.name}
                                         </Link>
                                     </td>
-                                    <td className="px-6 py-4 text-slate-600">{room.type}</td>
+                                    <td className="px-6 py-4 text-slate-600">{room.type === "Classroom" ? "Salle de Classe" : room.type === "Laboratory" ? "Laboratoire" : "Amphithéâtre"}</td>
                                     <td className="px-6 py-4 text-slate-600">
                                         <div className="flex items-center gap-2">
                                             <Users className="w-4 h-4 text-slate-400" />

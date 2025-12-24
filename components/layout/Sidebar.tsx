@@ -100,7 +100,7 @@ export const Sidebar = () => {
                                 <School className="text-white w-6 h-6" />
                             </div>
                             <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-200 to-white">
-                                Lycée Admin
+                                GSI Leaders
                             </h1>
                         </Link>
                     </div>
