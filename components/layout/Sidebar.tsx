@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
 
 const routes = [
     {
@@ -73,7 +74,17 @@ const routes = [
 
 export const Sidebar = () => {
     const pathname = usePathname();
+    const router = useRouter();
     const [isMobileOpen, setIsMobileOpen] = useState(false);
+
+    const handleLogout = (e: React.MouseEvent) => {
+        e.preventDefault();
+        // Clear all session cookies
+        document.cookie = "auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+        document.cookie = "user-name=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+        document.cookie = "user-role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+        router.push("/login");
+    };
 
     return (
         <>
@@ -138,10 +149,13 @@ export const Sidebar = () => {
                             <Settings className="h-5 w-5 mr-3" />
                             <span className="font-medium text-sm">Paramètres</span>
                         </Link>
-                        <Link href="/login" className="flex items-center p-3 rounded-xl hover:bg-red-500/10 text-red-400 hover:text-red-500 transition-colors mt-1">
+                        <button
+                            onClick={handleLogout}
+                            className="flex items-center w-full p-3 rounded-xl hover:bg-red-500/10 text-red-400 hover:text-red-500 transition-colors mt-1"
+                        >
                             <LogOut className="h-5 w-5 mr-3" />
                             <span className="font-medium text-sm">Déconnexion</span>
-                        </Link>
+                        </button>
                     </div>
                 </div>
             </div>

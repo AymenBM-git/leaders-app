@@ -4,17 +4,22 @@ import { use, useState, useEffect } from "react";
 import { ChevronLeft, Save, Upload, User, Mail, Phone, BookOpen, Trash2, GraduationCap } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { TEACHERS } from "@/lib/data";
+import { TEACHERS, USERS } from "@/lib/data";
 
 export default function TeacherDetailsPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
     const unwrappedParams = use(params);
     const [isLoading, setIsLoading] = useState(false);
     const [teacher, setTeacher] = useState<any>(null);
+    const [user, setUser] = useState<any>(null);
 
     useEffect(() => {
-        const found = TEACHERS.find(t => t.id === unwrappedParams.id);
-        setTeacher(found);
+        const foundTeacher = TEACHERS.find(t => t.id === unwrappedParams.id);
+        if (foundTeacher) {
+            setTeacher(foundTeacher);
+            const foundUser = USERS.find(u => u.idTeach === foundTeacher.id);
+            setUser(foundUser);
+        }
     }, [unwrappedParams.id]);
 
     if (!teacher) return <div>Chargement...</div>;
@@ -54,7 +59,7 @@ export default function TeacherDetailsPage({ params }: { params: Promise<{ id: s
                     <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm text-center">
                         <div className="w-32 h-32 mx-auto bg-slate-50 rounded-full flex items-center justify-center overflow-hidden border-2 border-slate-200 mb-4 cursor-pointer group relative">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={teacher.photo} alt={teacher.name} className="w-full h-full object-cover" />
+                            <img src={`../${teacher.photo}`} alt={teacher.name} className="w-full h-full object-cover" />
                             <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                 <Upload className="w-8 h-8 text-white" />
                             </div>
@@ -167,24 +172,24 @@ export default function TeacherDetailsPage({ params }: { params: Promise<{ id: s
                         </div>
 
                         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-700">Diplôme</label>
-                            <div className="relative">
-                                <GraduationCap className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-                                <input
-                                    type="text"
-                                    defaultValue={teacher.diploma}
-                                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm"
-                                />
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-slate-700">Diplôme</label>
+                                <div className="relative">
+                                    <GraduationCap className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+                                    <input
+                                        type="text"
+                                        defaultValue={teacher.diploma}
+                                        className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm"
+                                    />
+                                </div>
                             </div>
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-700">Genre</label>
-                            <select defaultValue={teacher.gender} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm">
-                                <option value="m">Masculin</option>
-                                <option value="f">Féminin</option>
-                            </select>
-                        </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-slate-700">Genre</label>
+                                <select defaultValue={teacher.gender} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm">
+                                    <option value="m">Masculin</option>
+                                    <option value="f">Féminin</option>
+                                </select>
+                            </div>
                         </div>
 
                     </div>
@@ -202,7 +207,7 @@ export default function TeacherDetailsPage({ params }: { params: Promise<{ id: s
                                 <label className="text-sm font-medium text-slate-700">Nom d'utilisateur<span className="text-red-500">*</span></label>
                                 <input
                                     type="text"
-                                    defaultValue={teacher.username}
+                                    defaultValue={user?.login || ""}
                                     required
                                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                                 />
@@ -213,7 +218,7 @@ export default function TeacherDetailsPage({ params }: { params: Promise<{ id: s
                                     <label className="text-sm font-medium text-slate-700">Mot de passe<span className="text-red-500">*</span></label>
                                     <input
                                         type="password"
-                                        defaultValue={teacher.password}
+                                        defaultValue={user?.password || ""}
                                         required
                                         className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                                     />
@@ -222,7 +227,7 @@ export default function TeacherDetailsPage({ params }: { params: Promise<{ id: s
                                     <label className="text-sm font-medium text-slate-700">Confirmation<span className="text-red-500">*</span></label>
                                     <input
                                         type="password"
-                                        defaultValue={teacher.password}
+                                        defaultValue={user?.password || ""}
                                         required
                                         className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                                     />

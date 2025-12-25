@@ -1,23 +1,56 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { School, UserCheck, ShieldCheck, ChevronRight, Loader2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { School, UserCheck, ShieldCheck, ChevronRight, Loader2, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { USERS, TEACHERS } from "@/lib/data";
 
 export default function LoginPage() {
-    const [role, setRole] = useState<"admin" | "teacher" | null>("admin");
+    const [role, setRole] = useState<"admin" | "prof" | null>("admin");
+    const [login, setLogin] = useState("");
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
 
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
-        // Mock login delay
+        setError(null);
+
         setTimeout(() => {
+            const user = USERS.find(u => u.login === login && u.password === password);
+
+            if (!user) {
+                setError("Identifiant ou mot de passe incorrect.");
+                setIsLoading(false);
+                return;
+            }
+
+            if (user.role !== role) {
+                setError("Rôle incorrect pour cet utilisateur.");
+                setIsLoading(false);
+                return;
+            }
+
+            // Resolve name: if prof, search in TEACHERS
+            let displayName = user.login;
+            if (user.role === 'prof' && user.idTeach) {
+                const teacher = TEACHERS.find(t => t.id === user.idTeach);
+                if (teacher) {
+                    displayName = teacher.name;
+                }
+            }
+
+            // Set simple cookie for session
+            document.cookie = `auth-token=authenticated; path=/; max-age=${60 * 60 * 24}; SameSite=Lax`;
+            document.cookie = `user-name=${encodeURIComponent(displayName)}; path=/; max-age=${60 * 60 * 24}; SameSite=Lax`;
+            document.cookie = `user-role=${user.role}; path=/; max-age=${60 * 60 * 24}; SameSite=Lax`;
+
             router.push("/dashboard");
-        }, 1500);
+        }, 1000);
     };
 
     return (
@@ -45,7 +78,10 @@ export default function LoginPage() {
                     {/* Role Selection */}
                     <div className="grid grid-cols-2 gap-4">
                         <button
-                            onClick={() => setRole("admin")}
+                            onClick={() => {
+                                setRole("admin");
+                                setError(null);
+                            }}
                             className={cn(
                                 "p-4 rounded-xl border-2 flex flex-col items-center gap-3 transition-all duration-200",
                                 role === "admin"
@@ -63,23 +99,40 @@ export default function LoginPage() {
                         </button>
 
                         <button
-                            onClick={() => setRole("teacher")}
+                            onClick={() => {
+                                setRole("prof");
+                                setError(null);
+                            }}
                             className={cn(
                                 "p-4 rounded-xl border-2 flex flex-col items-center gap-3 transition-all duration-200",
-                                role === "teacher"
+                                role === "prof"
                                     ? "border-emerald-500 bg-emerald-50 text-emerald-700 ring-2 ring-emerald-200"
                                     : "border-slate-200 hover:border-emerald-200 hover:bg-slate-50 text-slate-600"
                             )}
                         >
                             <div className={cn(
                                 "w-12 h-12 rounded-full flex items-center justify-center transition-colors",
-                                role === "teacher" ? "bg-emerald-200" : "bg-slate-100"
+                                role === "prof" ? "bg-emerald-200" : "bg-slate-100"
                             )}>
-                                <UserCheck className={cn("w-6 h-6", role === "teacher" ? "text-emerald-600" : "text-slate-500")} />
+                                <UserCheck className={cn("w-6 h-6", role === "prof" ? "text-emerald-600" : "text-slate-500")} />
                             </div>
                             <span className="font-semibold">Enseignant</span>
                         </button>
                     </div>
+
+                    <AnimatePresence>
+                        {error && (
+                            <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: "auto" }}
+                                exit={{ opacity: 0, height: 0 }}
+                                className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg flex items-center gap-3 text-sm"
+                            >
+                                <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                                <p>{error}</p>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
 
                     {/* Login Form */}
                     <motion.form
@@ -94,8 +147,10 @@ export default function LoginPage() {
                             <input
                                 type="text"
                                 required
+                                value={login}
+                                onChange={(e) => setLogin(e.target.value)}
                                 className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
-                                placeholder="admin"
+                                placeholder="votre login"
                             />
                         </div>
 
@@ -107,6 +162,8 @@ export default function LoginPage() {
                             <input
                                 type="password"
                                 required
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
                                 className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
                                 placeholder="••••••••"
                             />

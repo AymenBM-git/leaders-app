@@ -1,8 +1,26 @@
 "use client";
 
 import { Bell, Search } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export const Topbar = () => {
+    const [user, setUser] = useState({ name: "Utilisateur", role: "" });
+
+    useEffect(() => {
+        const cookies = document.cookie.split(';').reduce((acc, cookie) => {
+            const [key, value] = cookie.trim().split('=');
+            acc[key] = value;
+            return acc;
+        }, {} as Record<string, string>);
+
+        const name = cookies['user-name'] ? decodeURIComponent(cookies['user-name']) : "Utilisateur";
+        const role = cookies['user-role'] || "";
+
+        const roleDisplay = role === "admin" ? "Administrateur" : role === "prof" ? "Enseignant" : role;
+
+        setUser({ name, role: roleDisplay });
+    }, []);
+
     return (
         <div className="h-20 px-8 flex items-center justify-between glass-effect border-b bg-white/50 backdrop-blur-sm sticky top-0 z-30">
             <div className="flex items-center gap-x-4">
@@ -31,11 +49,11 @@ export const Topbar = () => {
                 {/* User Profile */}
                 <div className="flex items-center gap-x-3 cursor-pointer hover:opacity-80 transition-opacity">
                     <div className="text-right hidden md:block">
-                        <p className="text-sm font-medium text-slate-900">Admin User</p>
-                        <p className="text-xs text-slate-500">Administrateur</p>
+                        <p className="text-sm font-medium text-slate-900">{user.name}</p>
+                        <p className="text-xs text-slate-500">{user.role}</p>
                     </div>
                     <div className="h-10 w-10 rounded-full bg-indigo-100 border-2 border-indigo-500 flex items-center justify-center">
-                        <span className="text-indigo-600 font-bold">A</span>
+                        <span className="text-indigo-600 font-bold">{user.role.charAt(0)}</span>
                     </div>
                 </div>
             </div>

@@ -1,7 +1,24 @@
+"use client";
+
 import { Users, UserCheck, GraduationCap, School } from "lucide-react";
 import { STUDENTS, TEACHERS, PARENTS, CLASSES } from "@/lib/data";
+import { useEffect, useState } from "react";
 
 export default function DashboardPage() {
+    const [userName, setUserName] = useState("Admin");
+
+    useEffect(() => {
+        const cookies = document.cookie.split(';').reduce((acc, cookie) => {
+            const [key, value] = cookie.trim().split('=');
+            acc[key] = value;
+            return acc;
+        }, {} as Record<string, string>);
+
+        if (cookies['user-name']) {
+            setUserName(decodeURIComponent(cookies['user-name']));
+        }
+    }, []);
+
     const stats = [
         {
             label: "Total Élèves",
@@ -41,7 +58,7 @@ export default function DashboardPage() {
         <div className="space-y-8">
             <div>
                 <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700">
-                    Bonjour, Admin
+                    Bonjour, {userName}
                 </h1>
                 <p className="text-slate-500 mt-2">
                     Voici un aperçu de l'activité de votre établissement aujourd'hui.

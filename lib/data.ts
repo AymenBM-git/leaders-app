@@ -1,3 +1,9 @@
+export const USERS = [
+    { login: "admin", password: "admin", role: "admin", idTeach: "" },
+    { login: "prof", password: "prof", role: "prof", idTeach: "t1" },
+    { login: "1234", password: "1234", role: "prof", idTeach: "t2" },
+    { login: "1234", password: "1234", role: "prof", idTeach: "t3" },
+];
 export const STUDENTS = [
     { id: "s1", firstName: "Mariem", lastName: "Konzani", idenelev: "ELE001", classId: "c1", parentId: "p1", photo: "fille.jfif", status: "Actif", address: "123 Rue de la Liberté, Tunis", phone: "55123456", gender: "f" },
     { id: "s2", firstName: "Mohamed Ayoub", lastName: "El Jebri", idenelev: "ELE002", classId: "c1", parentId: "p2", photo: "garcon.jfif", status: "Actif", address: "45 Avenue Habib Bourguiba, Ariana", phone: "22334455", gender: "m" },
@@ -29,7 +35,7 @@ export const ROOMS = [
 ];
 
 export const TEACHERS = [
-    { id: "t1", name: "M. Dupont", subject: "Mathématiques", photo: "homme.png", iuense: "ENS001", username: "m.dupont", password: "password123", email: "dupont@ecole.com", phone: "98111222", diploma: "Mastère en Mathématiques", gender: "m" },
-    { id: "t2", name: "Mme. Martin", subject: "Français", photo: "femme.png", iuense: "ENS002", username: "mme.martin", password: "password123", email: "martin@ecole.com", phone: "55333444", diploma: "CAPES Français", gender: "f" },
-    { id: "t3", name: "M. Ben Ali", subject: "Physique", photo: "homme.png", iuense: "ENS003", username: "m.benali", password: "password123", email: "benali@ecole.com", phone: "22555666", diploma: "Doctorat en Physique", gender: "m" },
+    { id: "t1", name: "M. Dupont", subject: "Mathématiques", photo: "homme.png", iuense: "ENS001", email: "dupont@ecole.com", phone: "98111222", diploma: "Mastère en Mathématiques", gender: "m" },
+    { id: "t2", name: "Mme. Martin", subject: "Français", photo: "femme.png", iuense: "ENS002", email: "martin@ecole.com", phone: "55333444", diploma: "CAPES Français", gender: "f" },
+    { id: "t3", name: "M. Ben Ali", subject: "Physique", photo: "homme.png", iuense: "ENS003", email: "benali@ecole.com", phone: "22555666", diploma: "Doctorat en Physique", gender: "m" },
 ];
