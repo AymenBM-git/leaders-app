@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/prisma'
+import  prisma  from '../../../../lib/prisma';
 import { NextResponse } from 'next/server'
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
