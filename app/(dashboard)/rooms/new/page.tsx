@@ -9,13 +9,28 @@ export default function NewRoomPage() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsLoading(true);
-        setTimeout(() => {
-            setIsLoading(false);
+
+        const formData = new FormData(e.currentTarget);
+
+        try {
+            const res = await fetch("/api/rooms", {
+                method: "POST",
+                body: JSON.stringify({ name: formData.get("name"), type: formData.get("type"), capacity: formData.get("capacity"), status: formData.get("status") }),
+            });
+
+            if (!res.ok) throw new Error("Erreur lors de la création");
+
             router.push("/rooms");
-        }, 1000);
+            router.refresh();
+        } catch (error) {
+            console.error(error);
+            alert("Une erreur est survenue.");
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -44,6 +59,7 @@ export default function NewRoomPage() {
                         <label className="text-sm font-medium text-slate-700">Nom de la Salle</label>
                         <input
                             type="text"
+                            name="name"
                             placeholder="Ex: Salle 101"
                             className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                         />
@@ -52,7 +68,7 @@ export default function NewRoomPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-slate-700">Type</label>
-                            <select className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm">
+                            <select name="type" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm">
                                 <option value="Classroom">Salle de Classe</option>
                                 <option value="Laboratory">Laboratoire</option>
                                 <option value="Amphitheater">Amphithéâtre</option>
@@ -64,6 +80,7 @@ export default function NewRoomPage() {
                                 <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
                                 <input
                                     type="number"
+                                    name="capacity"
                                     min="1"
                                     defaultValue="30"
                                     className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
@@ -74,7 +91,7 @@ export default function NewRoomPage() {
 
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-slate-700">Statut Initial</label>
-                        <select className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm">
+                        <select name="status" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm">
                             <option value="Available">Disponible</option>
                             <option value="Maintenance">Maintenance</option>
                         </select>

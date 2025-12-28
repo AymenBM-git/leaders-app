@@ -1,0 +1,108 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model User {
+  login    String   @id
+  password String
+  role     String?
+  teacher  Teacher? @relation(fields: [idTeach], references: [id])
+  idTeach  Int?     @unique
+}
+
+model Student {
+  id        Int     @id @default(autoincrement())
+  firstName String?
+  lastName  String?
+  birthday  DateTime?
+  idenelev  String?
+  classe    Class?  @relation(fields: [classId], references: [id])
+  classId   Int?
+  parent    Parent? @relation(fields: [parentId], references: [id])
+  parentId  Int?
+  photo     String?
+  status    String?
+  address   String?
+  phone     String?
+  gender    String?
+}
+
+model Parent {
+  id          Int       @id @default(autoincrement())
+  name        String?
+  relation    String?
+  email       String?
+  phone       String?
+  childrenIds Student[]
+  username    String?
+  password    String?
+}
+
+model Teacher {
+  id        Int        @id @default(autoincrement())
+  name      String?
+  photo     String?
+  iuense    String?
+  email     String?
+  phone     String?
+  gender    String?
+  diploma   String?
+  classes   Class[]
+  schedules Schedule[]
+  user      User?
+  subject   Subject?   @relation(fields: [subjectId], references: [id])
+  subjectId Int?
+}
+
+model Class {
+  id        Int        @id @default(autoincrement())
+  name      String?
+  level     String?
+  teachers  Teacher[]
+  students  Student[]
+  schedules Schedule[]
+}
+
+model Room {
+  id        Int        @id @default(autoincrement())
+  name      String?
+  type      String?
+  capacity  Int?
+  status    String?
+  schedules Schedule[]
+}
+
+model Schedule {
+  id        Int      @id @default(autoincrement())
+  as        String?
+  day       String?
+  start     String?
+  duration  Int?
+  subject   Subject? @relation(fields: [subjectId], references: [id])
+  subjectId Int?
+  roomId    Int?
+  room      Room?    @relation(fields: [roomId], references: [id])
+  classId   Int?
+  class     Class?   @relation(fields: [classId], references: [id])
+  teacherId Int?
+  teacher   Teacher? @relation(fields: [teacherId], references: [id])
+}
+
+model Subject {
+  id          Int        @id @default(autoincrement())
+  name        String?
+  codematiere String?
+  teachers    Teacher[]
+  schedules   Schedule[]
+}

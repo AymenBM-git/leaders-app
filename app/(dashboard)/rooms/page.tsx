@@ -1,17 +1,36 @@
 "use client";
 
-import { useState } from "react";
-import { ROOMS } from "@/lib/data";
-import { Search, Plus, MapPin, Users, MoreVertical, LayoutGrid, List as ListIcon } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, Plus, MapPin, Users, MoreVertical, LayoutGrid, List as ListIcon, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
 export default function RoomsPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+    const [rooms, setRooms] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const filteredRooms = ROOMS.filter(room =>
-        room.name.toLowerCase().includes(searchTerm.toLowerCase())
+    useEffect(() => {
+        fetchRooms();
+    }, []);
+
+    const fetchRooms = async () => {
+        try {
+            const res = await fetch('/api/rooms');
+            if (res.ok) {
+                const data = await res.json();
+                setRooms(data);
+            }
+        } catch (error) {
+            console.error("Failed to fetch rooms", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const filteredRooms = rooms.filter(room =>
+        (room.name || "").toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     const getStatusColor = (status: string) => {
@@ -22,6 +41,14 @@ export default function RoomsPage() {
             default: return "bg-slate-100 text-slate-700";
         }
     };
+
+    if (isLoading) {
+        return (
+            <div className="flex h-96 items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-8">

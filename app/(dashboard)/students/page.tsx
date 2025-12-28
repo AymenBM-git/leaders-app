@@ -1,27 +1,68 @@
 "use client";
 
-import { useState } from "react";
-import { STUDENTS, CLASSES, PARENTS } from "@/lib/data";
-import { Search, Plus, Filter, MoreHorizontal, User, Eye, Phone, Trash2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, Plus, Filter, MoreHorizontal, User, Eye, Phone, Trash2, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
 export default function StudentsPage() {
-    const [students, setStudents] = useState(STUDENTS);
+    const [students, setStudents] = useState<any[]>([]);
+    const [classes, setClasses] = useState<any[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedClass, setSelectedClass] = useState("");
+    const [isLoading, setIsLoading] = useState(true);
 
-    const handleDelete = (id: string) => {
+    useEffect(() => {
+        fetchData();
+    }, []);
+
+    const fetchData = async () => {
+        try {
+            const [studentsRes, classesRes] = await Promise.all([
+                fetch('/api/students'),
+                fetch('/api/classes')
+            ]);
+
+            if (studentsRes.ok) {
+                const studentsData = await studentsRes.json();
+                setStudents(studentsData);
+            }
+            if (classesRes.ok) {
+                const classesData = await classesRes.json();
+                setClasses(classesData);
+            }
+        } catch (error) {
+            console.error("Failed to fetch data", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleDelete = async (id: number) => {
         if (window.confirm("Êtes-vous sûr de vouloir supprimer cet élève ?")) {
-            setStudents(students.filter(s => s.id !== id));
+            try {
+                await fetch(`/api/students/${id}`, { method: 'DELETE' });
+                setStudents(students.filter(s => s.id !== id));
+            } catch (err) {
+                console.error("Failed to delete", err);
+                alert("Erreur lors de la suppression");
+            }
         }
     };
 
     const filteredStudents = students.filter(student => {
-        const matchesSearch = `${student.firstName} ${student.lastName}`.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesClass = selectedClass ? student.classId === selectedClass : true;
+        const matchesSearch = `${student.firstName || ''} ${student.lastName || ''}`.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesClass = selectedClass ? String(student.classId) === selectedClass : true;
         return matchesSearch && matchesClass;
     });
+
+    if (isLoading) {
+        return (
+            <div className="flex h-96 items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-8">
@@ -58,16 +99,11 @@ export default function StudentsPage() {
                             className="appearance-none pl-10 pr-8 py-2 bg-slate-50 text-slate-600 rounded-xl font-medium hover:bg-slate-100 border border-slate-200/50 outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer"
                         >
                             <option value="">Toutes les classes</option>
-                            {CLASSES.map(c => (
+                            {classes.map(c => (
                                 <option key={c.id} value={c.id}>{c.name}</option>
                             ))}
                         </select>
                     </div>
-                    {/*
-                    <button className="px-4 py-2 bg-slate-50 text-slate-600 rounded-xl font-medium hover:bg-slate-100 flex items-center gap-2 border border-slate-200/50">
-                        <Filter className="w-4 h-4" />
-                        <span>Statut</span>
-                    </button>*/}
                 </div>
             </div>
 
@@ -80,14 +116,13 @@ export default function StudentsPage() {
                                 <th className="p-4 text-xs font-semibold uppercase text-slate-500 tracking-wider">Élève</th>
                                 <th className="p-4 text-xs font-semibold uppercase text-slate-500 tracking-wider">Classe</th>
                                 <th className="p-4 text-xs font-semibold uppercase text-slate-500 tracking-wider">Parent</th>
-                                {/*<th className="p-4 text-xs font-semibold uppercase text-slate-500 tracking-wider">Statut</th>*/}
                                 <th className="p-4 text-xs font-semibold uppercase text-slate-500 tracking-wider text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
                             {filteredStudents.map((student, index) => {
-                                const parent = PARENTS.find(p => p.id === student.parentId);
-                                const studentClass = CLASSES.find(c => c.id === student.classId);
+                                const parent = student.parent;
+                                const studentClass = student.classe;
 
                                 return (
                                     <motion.tr
@@ -101,7 +136,9 @@ export default function StudentsPage() {
                                             <div className="flex items-center gap-3">
                                                 <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden border-2 border-white shadow-sm">
                                                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                    <img src={student.photo} alt={`${student.firstName} ${student.lastName}`} className="w-full h-full object-cover" />
+                                                    <img src={student.photo || "/avatars/student-1.png"} alt={`${student.firstName} ${student.lastName}`} className="w-full h-full object-cover"
+                                                        onError={(e) => { (e.target as HTMLImageElement).src = 'https://ui-avatars.com/api/?name=' + student.firstName + '+' + student.lastName }}
+                                                    />
                                                 </div>
                                                 <Link href={`/students/${student.id}`} className="font-bold text-slate-600 text-lg hover:text-indigo-600 transition-colors">
                                                     <span >{student.firstName} {student.lastName}</span>
@@ -109,9 +146,15 @@ export default function StudentsPage() {
                                             </div>
                                         </td>
                                         <td className="p-4">
+                                            <Link href={`/classes/${student.classe.id}`} className="flex items-center gap-2 text-slate-600 hover:text-indigo-600 transition-colors group-hover/parent">   
                                             <span className="px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-sm font-medium border border-indigo-100">
-                                                {studentClass?.name || "N/A"}
+                                                {student.classe ? (
+                                                    (student.classe.level === "1" ? "السابعة أساسي " :
+                                                        student.classe.level === "2" ? "الثامنة أساسي " :
+                                                            student.classe.level === "3" ? "التاسعة أساسي " : "") + student.classe.name
+                                                ) : "N/A"}
                                             </span>
+                                            </Link>
                                         </td>
                                         <td className="p-4">
                                             {parent ? (
@@ -125,15 +168,6 @@ export default function StudentsPage() {
                                                 <span className="text-slate-400 text-sm">Non assigné</span>
                                             )}
                                         </td>
-                                        {/*<td className="p-4">
-                                            <span className={cn(
-                                                "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border",
-                                                student.status === "Actif" ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-red-50 text-red-700 border-red-100"
-                                            )}>
-                                                <span className={cn("w-1.5 h-1.5 rounded-full", student.status === "Actif" ? "bg-emerald-500" : "bg-red-500")} />
-                                                {student.status}
-                                            </span>
-                                        </td>*/}
                                         <td className="p-4 text-right">
                                             <div className="flex items-center justify-end gap-2">
                                                 <Link href={`/students/${student.id}`} className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded-lg transition-all" title="Voir profil">

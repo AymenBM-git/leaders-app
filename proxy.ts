@@ -1,16 +1,14 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
     const authToken = request.cookies.get('auth-token');
     const { pathname } = request.nextUrl;
 
-    // Protect dashboard routes
-    // Check if pathname starts with dashboard or other restricted areas
-    const protectedRoutes = ['/dashboard', '/students', '/teachers', '/classes', '/subjects', '/rooms', '/schedule', '/parents'];
-    const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
+    // Protect all routes except /login (and what's excluded in the matcher)
+    const isPublicRoute = pathname === '/login';
 
-    if (isProtectedRoute && !authToken) {
+    if (!isPublicRoute && !authToken) {
         const url = request.nextUrl.clone();
         url.pathname = '/login';
         return NextResponse.redirect(url);
@@ -35,6 +33,6 @@ export const config = {
          * - _next/image (image optimization files)
          * - favicon.ico (favicon file)
          */
-        '/((?!api|_next/static|_next/image|favicon.ico).*)',
+        '/((?!api|_next/static|_next/image|favicon.ico|img.jpg).*)',
     ],
 };

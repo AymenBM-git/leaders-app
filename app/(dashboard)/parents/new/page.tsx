@@ -10,13 +10,36 @@ export default function NewParentPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [children, setChildren] = useState<string[]>([]);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsLoading(true);
-        setTimeout(() => {
+
+        const formData = new FormData(e.currentTarget);
+        const data = Object.fromEntries(formData.entries());
+
+        if (data.password !== data.confirmPassword) {
+            alert("Les mots de passe ne correspondent pas.");
             setIsLoading(false);
+            return;
+        }
+
+        try {
+            const res = await fetch("/api/parents", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data),
+            });
+
+            if (!res.ok) throw new Error("Failed to create parent");
+
             router.push("/parents");
-        }, 1000);
+            router.refresh();
+        } catch (error) {
+            console.error(error);
+            alert("Une erreur est survenue lors de la création.");
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -48,13 +71,14 @@ export default function NewParentPage() {
                                 <label className="text-sm font-medium text-slate-700">Nom Complet</label>
                                 <input
                                     type="text"
+                                    name="name"
                                     placeholder="Ex: Ahmed Konzani"
                                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 transition-all text-sm"
                                 />
                             </div>
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-slate-700">Relation</label>
-                                <select className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 transition-all text-sm">
+                                <select name="relation" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 transition-all text-sm">
                                     <option value="father">Père</option>
                                     <option value="mother">Mère</option>
                                     <option value="guardian">Tuteur Légal</option>
@@ -69,6 +93,7 @@ export default function NewParentPage() {
                                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
                                     <input
                                         type="email"
+                                        name="email"
                                         placeholder="parent@email.com"
                                         className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 transition-all text-sm"
                                     />
@@ -80,6 +105,7 @@ export default function NewParentPage() {
                                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
                                     <input
                                         type="tel"
+                                        name="phone"
                                         placeholder="+216 00 000 000"
                                         className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 transition-all text-sm"
                                     />
@@ -112,7 +138,7 @@ export default function NewParentPage() {
                                 <label className="text-sm font-medium text-slate-700">Nom d'utilisateur<span className="text-red-500">*</span></label>
                                 <input
                                     type="text"
-                                    required
+                                    name="username"
                                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                                 />
                             </div>
@@ -122,7 +148,7 @@ export default function NewParentPage() {
                                     <label className="text-sm font-medium text-slate-700">Mot de passe<span className="text-red-500">*</span></label>
                                     <input
                                         type="password"
-                                        required
+                                        name="password"
                                         className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                                     />
                                 </div>
@@ -130,7 +156,7 @@ export default function NewParentPage() {
                                     <label className="text-sm font-medium text-slate-700">Confirmation<span className="text-red-500">*</span></label>
                                     <input
                                         type="password"
-                                        required
+                                        name="confirmPassword"
                                         className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                                     />
                                 </div>

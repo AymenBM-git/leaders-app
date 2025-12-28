@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { School, UserCheck, ShieldCheck, ChevronRight, Loader2, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { USERS, TEACHERS } from "@/lib/data";
 
 export default function LoginPage() {
     const [role, setRole] = useState<"admin" | "prof" | null>("admin");
@@ -15,42 +14,43 @@ export default function LoginPage() {
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
 
-    const handleLogin = (e: React.FormEvent) => {
+
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
         setError(null);
 
-        setTimeout(() => {
-            const user = USERS.find(u => u.login === login && u.password === password);
+        try {
+            const res = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ login, password }),
+            });
 
-            if (!user) {
-                setError("Identifiant ou mot de passe incorrect.");
-                setIsLoading(false);
-                return;
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.message || "Erreur lors de la connexion via API");
             }
 
-            if (user.role !== role) {
+            const userData = await res.json();
+
+            if (role && userData.role !== role) {
                 setError("Rôle incorrect pour cet utilisateur.");
                 setIsLoading(false);
                 return;
             }
 
-            // Resolve name: if prof, search in TEACHERS
-            let displayName = user.login;
-            if (user.role === 'prof' && user.idTeach) {
-                const teacher = TEACHERS.find(t => t.id === user.idTeach);
-                if (teacher) {
-                    displayName = teacher.name;
-                }
-            }
-
-            // Set simple cookie for session
+            // Set cookies for session
             document.cookie = `auth-token=authenticated; path=/; max-age=${60 * 60 * 24}; SameSite=Lax`;
-            document.cookie = `user-name=${encodeURIComponent(displayName)}; path=/; max-age=${60 * 60 * 24}; SameSite=Lax`;
-            document.cookie = `user-role=${user.role}; path=/; max-age=${60 * 60 * 24}; SameSite=Lax`;
+            document.cookie = `user-name=${encodeURIComponent(userData.displayName)}; path=/; max-age=${60 * 60 * 24}; SameSite=Lax`;
+            document.cookie = `user-role=${userData.role}; path=/; max-age=${60 * 60 * 24}; SameSite=Lax`;
 
             router.push("/dashboard");
-        }, 1000);
+        } catch (err: any) {
+            console.error(err);
+            setError(err.message || "Une erreur est survenue lors de la connexion.");
+            setIsLoading(false);
+        }
     };
 
     return (

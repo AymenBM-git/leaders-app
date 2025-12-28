@@ -1,32 +1,88 @@
 "use client";
 
-import { use, useState } from "react";
-import { ChevronLeft, Save, School, Trash2, User, Eye } from "lucide-react";
+import { use, useState, useEffect } from "react";
+import { ChevronLeft, Save, School, Trash2, User, Eye, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CLASSES, STUDENTS } from "@/lib/data";
 import { motion } from "framer-motion";
 
 export default function EditClassPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
     const unwrappedParams = use(params);
     const [isLoading, setIsLoading] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [classe, setClasse] = useState<any>(null);
 
-    const classe = CLASSES.find(c => c.id === unwrappedParams.id);
-    const classStudents = STUDENTS.filter(s => s.classId === unwrappedParams.id);
+    useEffect(() => {
+        const fetchClass = async () => {
+            try {
+                const res = await fetch(`/api/classes/${unwrappedParams.id}`);
+                if (res.ok) {
+                    setClasse(await res.json());
+                }
+            } catch (error) {
+                console.error("Failed to fetch class", error);
+            }
+        };
+        fetchClass();
+    }, [unwrappedParams.id]);
 
-    if (!classe) {
-        return <div>Classe non trouvée</div>;
-    }
-
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsLoading(true);
-        setTimeout(() => {
+
+        const formData = new FormData(e.currentTarget);
+        const data = {
+            name: formData.get("name"),
+            level: formData.get("level"),
+            // capacity: Number(formData.get("capacity")) // If added later
+        };
+
+        try {
+            const res = await fetch(`/api/classes/${unwrappedParams.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (res.ok) {
+                router.push("/classes");
+            } else {
+                alert("Erreur lors de la mise à jour");
+            }
+        } catch (error) {
+            console.error("Failed to update class", error);
+        } finally {
             setIsLoading(false);
-            router.push("/classes");
-        }, 1000);
+        }
     };
+
+    const handleDelete = async () => {
+        if (!confirm("Voulez-vous vraiment supprimer cette classe ?")) return;
+        setIsDeleting(true);
+        try {
+            const res = await fetch(`/api/classes/${unwrappedParams.id}`, { method: 'DELETE' });
+            if (res.ok) {
+                router.push("/classes");
+            } else {
+                alert("Erreur lors de la suppression");
+            }
+        } catch (error) {
+            console.error("Failed to delete class", error);
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
+    if (!classe) {
+        return (
+            <div className="flex h-96 items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+            </div>
+        );
+    }
+
+    const classStudents = classe.students || [];
 
     return (
         <div className="space-y-6 max-w-4xl mx-auto pb-12">
@@ -43,8 +99,12 @@ export default function EditClassPage({ params }: { params: Promise<{ id: string
                         <p className="text-slate-500 text-sm">Gérez les détails et voyez la liste des élèves.</p>
                     </div>
                 </div>
-                <button className="px-4 py-2 rounded-xl bg-red-50 text-red-600 font-medium hover:bg-red-100 hover:text-red-700 transition-colors flex items-center gap-2">
-                    <Trash2 className="w-4 h-4" />
+                <button
+                    onClick={handleDelete}
+                    disabled={isDeleting}
+                    className="px-4 py-2 rounded-xl bg-red-50 text-red-600 font-medium hover:bg-red-100 hover:text-red-700 transition-colors flex items-center gap-2 disabled:opacity-50"
+                >
+                    {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                     Supprimer la classe
                 </button>
             </div>
@@ -57,21 +117,21 @@ export default function EditClassPage({ params }: { params: Promise<{ id: string
 
                 <div className="space-y-4">
                     <div className="space-y-2">
+                        <label className="text-sm font-medium text-slate-700">Niveau</label>
+                        <select name="level" defaultValue={classe.level} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm">
+                            <option value="1">السابعة أساسي</option>
+                            <option value="2">الثامنة أساسي</option>
+                            <option value="3">التاسعة أساسي</option>
+                        </select>
+                    </div>
+                    <div className="space-y-2">
                         <label className="text-sm font-medium text-slate-700">Nom de la Classe</label>
                         <input
+                            name="name"
                             type="text"
                             defaultValue={classe.name}
                             className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                         />
-                    </div>
-
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-700">Niveau</label>
-                        <select defaultValue={classe.level} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm">
-                            <option value="1">7ème Année</option>
-                            <option value="2">8ème Année</option>
-                            <option value="3">9ème Année</option>
-                        </select>
                     </div>
 
                 </div>
@@ -89,7 +149,12 @@ export default function EditClassPage({ params }: { params: Promise<{ id: string
                         disabled={isLoading}
                         className="px-6 py-2.5 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700 shadow-lg shadow-indigo-500/20 transition-all flex items-center gap-2 disabled:opacity-70"
                     >
-                        {isLoading ? "..." : (
+                        {isLoading ? (
+                            <>
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                ...
+                            </>
+                        ) : (
                             <>
                                 <Save className="w-4 h-4" />
                                 Mettre à jour la classe
@@ -119,7 +184,7 @@ export default function EditClassPage({ params }: { params: Promise<{ id: string
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
-                            {classStudents.map((student, index) => (
+                            {classStudents.map((student: any, index: number) => (
                                 <motion.tr
                                     key={student.id}
                                     initial={{ opacity: 0, x: -10 }}
@@ -131,7 +196,9 @@ export default function EditClassPage({ params }: { params: Promise<{ id: string
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden border-2 border-white shadow-sm flex-shrink-0">
                                                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                <img src={student.photo} alt={student.firstName} className="w-full h-full object-cover" />
+                                                <img src={`../${student.photo}` || "/avatars/student-1.png"}
+                                                    onError={(e) => { (e.target as HTMLImageElement).src = 'https://ui-avatars.com/api/?name=' + student.firstName + '+' + student.lastName }}
+                                                    alt={student.firstName} className="w-full h-full object-cover" />
                                             </div>
                                             <span className="font-bold text-slate-700">{student.firstName} {student.lastName}</span>
                                         </div>

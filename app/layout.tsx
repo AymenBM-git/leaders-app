@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Créer une application Next.js",
-  description: "Généré par create next app",
+  title: "GSI College Les Leaders",
+  description: "GSI College Les Leaders",
 };
 
 export default function RootLayout({

@@ -9,13 +9,33 @@ export default function NewSubjectPage() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsLoading(true);
-        setTimeout(() => {
-            setIsLoading(false);
+
+        const formData = new FormData(e.currentTarget);
+        const data = {
+            name: formData.get("name"),
+            codematiere: formData.get("codematiere"),
+        };
+
+        try {
+            const res = await fetch("/api/subjects", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data),
+            });
+
+            if (!res.ok) throw new Error("Failed to create subject");
+
             router.push("/subjects");
-        }, 1000);
+            router.refresh();
+        } catch (error) {
+            console.error(error);
+            alert("Une erreur est survenue lors de la création.");
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -43,31 +63,26 @@ export default function NewSubjectPage() {
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-slate-700">Nom de la Matière</label>
                         <input
+                            name="name"
                             type="text"
                             placeholder="Ex: Informatique"
+                            required
                             className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                         />
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-700">Coefficient</label>
-                        <input
-                            type="number"
-                            min="1"
-                            max="10"
-                            defaultValue="1"
-                            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
-                        />
-                    </div>
-
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-700">Couleur (pour l'affichage)</label>
-                        <div className="flex gap-3">
-                            {["bg-indigo-500", "bg-emerald-500", "bg-pink-500", "bg-sky-500", "bg-amber-500", "bg-slate-800"].map(color => (
-                                <div key={color} className={`w-8 h-8 rounded-full ${color} cursor-pointer hover:scale-110 transition-transform ring-2 ring-offset-2 ring-transparent hover:ring-slate-200`}></div>
-                            ))}
-                        </div>
-                    </div>
+                            <label className="text-sm font-medium text-slate-700">Identifiant Matière</label>
+                            <div className="relative">
+                                <label className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+                                <input
+                                    name="codematiere"
+                                    type="text"
+                                    placeholder="Ex: Mat001"
+                                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm"
+                                />
+                            </div>
+                            </div>
                 </div>
 
                 <div className="pt-4 flex justify-end gap-3 border-t border-slate-100 mt-6">

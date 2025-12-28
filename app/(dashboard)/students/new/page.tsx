@@ -1,23 +1,78 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronLeft, Save, Upload, User, Calendar, Mail, Phone, MapPin } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CLASSES, PARENTS } from "@/lib/data";
+
+interface Parent {
+    id: number;
+    name: string;
+}
+
+interface Class {
+    id: number;
+    level: string;
+    name: string;
+}
 
 export default function NewStudentPage() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
+    const [parents, setParents] = useState<Parent[]>([]);
+    const [classes, setClasses] = useState<Class[]>([]);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [parentsRes, classesRes] = await Promise.all([
+                    fetch('/api/parents'),
+                    fetch('/api/classes')
+                ]);
+
+                if (parentsRes.ok) {
+                    const parentsData = await parentsRes.json();
+                    setParents(parentsData);
+                }
+                if (classesRes.ok) {
+                    const classesData = await classesRes.json();
+                    setClasses(classesData);
+                }
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            }
+        };
+        fetchData();
+    }, []);
+
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsLoading(true);
-        // Simulate API call
-        setTimeout(() => {
-            setIsLoading(false);
+
+        const formData = new FormData(e.currentTarget);
+
+        /* Combine First and Last Name
+        const firstName = formData.get("firstName")?.toString() || "";
+        const lastName = formData.get("lastName")?.toString() || "";
+        const fullName = `${firstName} ${lastName}`.trim();
+        formData.append("name", fullName);*/
+
+        try {
+            const res = await fetch("/api/students", {
+                method: "POST",
+                body: formData,
+            });
+
+            if (!res.ok) throw new Error("Erreur lors de la création");
+
             router.push("/students");
-        }, 1000);
+            router.refresh();
+        } catch (error) {
+            console.error(error);
+            alert("Une erreur est survenue.");
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -42,7 +97,7 @@ export default function NewStudentPage() {
                     <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm text-center">
                         <div className="w-32 h-32 mx-auto bg-slate-50 rounded-full flex items-center justify-center border-2 border-dashed border-slate-200 text-slate-400 mb-4 hover:border-indigo-400 hover:text-indigo-500 transition-colors cursor-pointer group relative overflow-hidden">
                             <Upload className="w-8 h-8 group-hover:scale-110 transition-transform" />
-                            <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" />
+                            <input type="file" name="photo" className="absolute inset-0 opacity-0 cursor-pointer" />
                         </div>
                         <p className="text-sm font-medium text-slate-900">Photo de profil</p>
                         <p className="text-xs text-slate-400 mt-1">JPG, PNG max 2MB</p>
@@ -53,42 +108,32 @@ export default function NewStudentPage() {
 
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-slate-700">Classe</label>
-                            <select className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm">
-                                <option value="">Sélectionner une classe</option>
-                                {CLASSES.map((c) => (
-                                    <option key={c.id} value={c.id}>{c.name}</option>
-                                ))}
+                            <select
+                                name="classId"
+                                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm"
+                            >
+                                <option value="">Sélectionner...</option>
+                                {classes.map((cls) => {
+                                    const name = (cls.level === "1") ? "السابعة أساسي " + cls.name : (cls.level === "2") ? "الثامنة أساسي " + cls.name : (cls.level === "3") ? "التاسعة أساسي " + cls.name : ""
+                                    return (
+                                        <option key={cls.id} value={cls.id}>
+                                            {name}
+                                        </option>
+                                    )
+                                })}
                             </select>
                         </div>
-
-                        {/* Date d'inscription  
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-700">Date d'inscription</label>
-                            <div className="relative">
-                                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-                                <input
-                                    type="date"
-                                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-700">Statut</label>
-                            <select className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm">
-                                <option value="active">Actif</option>
-                                <option value="inactive">Inactif</option>
-                                <option value="graduated">Diplômé</option>
-                            </select>
-                        </div>*/}
 
                         <div className="space-y-2 pt-4 border-t border-slate-50">
                             <label className="text-sm font-medium text-slate-700">Parent / Tuteur</label>
                             <div className="relative">
                                 <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-                                <select className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm">
+                                <select
+                                    name="parentId"
+                                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
+                                >
                                     <option value="">Sélectionner un parent...</option>
-                                    {PARENTS.map((p) => (
+                                    {parents.map((p) => (
                                         <option key={p.id} value={p.id}>{p.name}</option>
                                     ))}
                                 </select>
@@ -115,6 +160,7 @@ export default function NewStudentPage() {
                                 <label className="text-sm font-medium text-slate-700">Prénom</label>
                                 <input
                                     type="text"
+                                    name="firstName"
                                     placeholder="Ex: Mohamed"
                                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                                 />
@@ -123,6 +169,7 @@ export default function NewStudentPage() {
                                 <label className="text-sm font-medium text-slate-700">Nom</label>
                                 <input
                                     type="text"
+                                    name="lastName"
                                     placeholder="Ex: Ben Ali"
                                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                                 />
@@ -131,12 +178,16 @@ export default function NewStudentPage() {
                                 <label className="text-sm font-medium text-slate-700">Date de naissance</label>
                                 <input
                                     type="date"
+                                    name="birthday"
                                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                                 />
                             </div>
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-slate-700">Genre</label>
-                                <select className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm">
+                                <select
+                                    name="gender"
+                                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
+                                >
                                     <option value="m">Masculin</option>
                                     <option value="f">Féminin</option>
                                 </select>
@@ -149,6 +200,7 @@ export default function NewStudentPage() {
                                 <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
                                 <input
                                     type="text"
+                                    name="idenelev" // Placeholder mapping logic
                                     placeholder="Ex: ELE001"
                                     className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                                 />
@@ -161,6 +213,7 @@ export default function NewStudentPage() {
                                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
                                 <input
                                     type="tel"
+                                    name="phone"
                                     placeholder="+216 00 000 000"
                                     className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                                 />
@@ -173,6 +226,7 @@ export default function NewStudentPage() {
                             <div className="relative">
                                 <MapPin className="absolute left-3 top-3 text-slate-400 w-4 h-4" />
                                 <textarea
+                                    name="address"
                                     rows={3}
                                     placeholder="Adresse complète..."
                                     className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm resize-none"

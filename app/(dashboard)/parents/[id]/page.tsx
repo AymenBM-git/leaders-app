@@ -1,32 +1,86 @@
 "use client";
 
 import { use, useState, useEffect } from "react";
-import { ChevronLeft, Save, User, Mail, Phone, MapPin, Trash2 } from "lucide-react";
+import { ChevronLeft, Save, User, Mail, Phone, MapPin, Trash2, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { PARENTS } from "@/lib/data";
 
 export default function ParentDetailsPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
     const unwrappedParams = use(params);
     const [isLoading, setIsLoading] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
     const [parent, setParent] = useState<any>(null);
 
     useEffect(() => {
-        const found = PARENTS.find(p => p.id === unwrappedParams.id);
-        setParent(found);
+        const fetchParent = async () => {
+            try {
+                const res = await fetch(`/api/parents/${unwrappedParams.id}`);
+                if (res.ok) {
+                    setParent(await res.json());
+                }
+            } catch (error) {
+                console.error("Failed to fetch parent", error);
+            }
+        };
+        fetchParent();
     }, [unwrappedParams.id]);
 
-    if (!parent) return <div>Chargement...</div>;
-
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsLoading(true);
-        setTimeout(() => {
+
+        const formData = new FormData(e.currentTarget);
+        const data = {
+            name: formData.get("name"),
+            email: formData.get("email"),
+            phone: formData.get("phone"),
+            username: formData.get("username"),
+            // Only send password if provided
+            password: formData.get("password") || undefined
+        };
+
+        try {
+            const res = await fetch(`/api/parents/${unwrappedParams.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (res.ok) {
+                router.push("/parents");
+            } else {
+                alert("Erreur lors de la mise à jour");
+            }
+        } catch (error) {
+            console.error("Failed to update parent", error);
+        } finally {
             setIsLoading(false);
-            router.push("/parents");
-        }, 1000);
+        }
     };
+
+    const handleDelete = async () => {
+        if (!confirm("Voulez-vous vraiment supprimer ce parent ?")) return;
+        setIsDeleting(true);
+        try {
+            const res = await fetch(`/api/parents/${unwrappedParams.id}`, { method: 'DELETE' });
+            if (res.ok) {
+                router.push("/parents");
+            } else {
+                alert("Erreur lors de la suppression");
+            }
+        } catch (error) {
+            console.error("Failed to delete parent", error);
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
+    if (!parent) return (
+        <div className="flex h-96 items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-pink-600" />
+        </div>
+    );
 
     return (
         <div className="space-y-6 max-w-5xl mx-auto">
@@ -43,8 +97,12 @@ export default function ParentDetailsPage({ params }: { params: Promise<{ id: st
                         <p className="text-slate-500 text-sm">ID: {parent.id}</p>
                     </div>
                 </div>
-                <button className="px-4 py-2 rounded-xl bg-red-50 text-red-600 font-medium hover:bg-red-100 hover:text-red-700 transition-colors flex items-center gap-2">
-                    <Trash2 className="w-4 h-4" />
+                <button
+                    onClick={handleDelete}
+                    disabled={isDeleting}
+                    className="px-4 py-2 rounded-xl bg-red-50 text-red-600 font-medium hover:bg-red-100 hover:text-red-700 transition-colors flex items-center gap-2 disabled:opacity-50"
+                >
+                    {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                     Supprimer
                 </button>
             </div>
@@ -61,6 +119,7 @@ export default function ParentDetailsPage({ params }: { params: Promise<{ id: st
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-slate-700">Nom Complet</label>
                                 <input
+                                    name="name"
                                     type="text"
                                     defaultValue={parent.name}
                                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 transition-all text-sm"
@@ -74,6 +133,7 @@ export default function ParentDetailsPage({ params }: { params: Promise<{ id: st
                                 <div className="relative">
                                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
                                     <input
+                                        name="email"
                                         type="email"
                                         defaultValue={parent.email}
                                         className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 transition-all text-sm"
@@ -85,6 +145,7 @@ export default function ParentDetailsPage({ params }: { params: Promise<{ id: st
                                 <div className="relative">
                                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
                                     <input
+                                        name="phone"
                                         type="tel"
                                         defaultValue={parent.phone}
                                         className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 transition-all text-sm"
@@ -106,51 +167,25 @@ export default function ParentDetailsPage({ params }: { params: Promise<{ id: st
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-slate-700">Nom d'utilisateur<span className="text-red-500">*</span></label>
                                 <input
+                                    name="username"
                                     type="text"
                                     defaultValue={parent.username}
-                                    required
+                                    
                                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                                 />
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium text-slate-700">Mot de passe<span className="text-red-500">*</span></label>
+                                    <label className="text-sm font-medium text-slate-700">Nouveau mot de passe</label>
                                     <input
+                                        name="password"
                                         type="password"
-                                        defaultValue={parent.password}
-                                        required
-                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium text-slate-700">Confirmation<span className="text-red-500">*</span></label>
-                                    <input
-                                        type="password"
-                                        defaultValue={parent.password}
-                                        required
+                                        placeholder="Laisser vide pour ne pas changer"
                                         className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                                     />
                                 </div>
                             </div>
-
-                            {/* Actions buttons identical to creation form 
-                            <div className="flex items-center gap-3 mt-4">
-                                <button
-                                    type="button"
-                                    className="px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg transition-colors"
-                                    onClick={() => { }}
-                                >
-                                    Modifier
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => router.back()}
-                                    className="px-6 py-2.5 border border-slate-300 text-slate-700 font-medium rounded-lg hover:bg-slate-50 transition-colors"
-                                >
-                                    Annuler
-                                </button>
-                            </div>*/}
                         </div>
                     </div>
                 </div>
@@ -161,7 +196,12 @@ export default function ParentDetailsPage({ params }: { params: Promise<{ id: st
                         disabled={isLoading}
                         className="w-full py-3 rounded-xl bg-pink-600 text-white font-bold hover:bg-pink-700 shadow-lg shadow-pink-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-70"
                     >
-                        {isLoading ? "..." : (
+                        {isLoading ? (
+                            <>
+                                <Loader2 className="w-5 h-5 animate-spin" />
+                                ...
+                            </>
+                        ) : (
                             <>
                                 <Save className="w-5 h-5" />
                                 Mettre à jour

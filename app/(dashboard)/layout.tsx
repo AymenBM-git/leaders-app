@@ -1,11 +1,20 @@
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
+    const cookieStore = await cookies();
+    const authToken = cookieStore.get('auth-token');
+
+    if (!authToken) {
+        redirect('/login');
+    }
+
     return (
         <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
             {/* Sidebar */}

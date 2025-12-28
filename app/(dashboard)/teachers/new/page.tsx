@@ -1,21 +1,70 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronLeft, Save, Upload, User, Mail, Phone, BookOpen, GraduationCap } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+interface Subject {
+    id: number;
+    name: string;
+}
+
 export default function NewTeacherPage() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
+    const [subjects, setSubjects] = useState<Subject[]>([]);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    useEffect(() => {
+        const fetchSubjects = async () => {
+            try {
+                const res = await fetch('/api/subjects');
+                if (res.ok) {
+                    const data = await res.json();
+                    setSubjects(data);
+                }
+            } catch (error) {
+                console.error("Error fetching subjects:", error);
+            }
+        };
+        fetchSubjects();
+    }, []);
+
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsLoading(true);
-        setTimeout(() => {
+
+        const formData = new FormData(e.currentTarget);
+
+        /* Combine First and Last Name
+        const firstName = formData.get("firstName")?.toString() || "";
+        const lastName = formData.get("lastName")?.toString() || "";
+        const fullName = `${firstName} ${lastName}`.trim();
+        formData.append("name", fullName);*/
+
+
+        if (formData.get("password") !== formData.get("confirmPassword")) {
+            alert("Les mots de passe ne correspondent pas.");
             setIsLoading(false);
+            return;
+        }
+
+        try {
+            const res = await fetch("/api/teachers", {
+                method: "POST",
+                body: formData, // Send FormData directly
+            });
+
+            if (!res.ok) throw new Error("Erreur lors de la création");
+
             router.push("/teachers");
-        }, 1000);
+            router.refresh();
+        } catch (error) {
+            console.error(error);
+            alert("Une erreur est survenue.");
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -38,7 +87,7 @@ export default function NewTeacherPage() {
                     <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm text-center">
                         <div className="w-32 h-32 mx-auto bg-slate-50 rounded-full flex items-center justify-center border-2 border-dashed border-slate-200 text-slate-400 mb-4 hover:border-emerald-400 hover:text-emerald-500 transition-colors cursor-pointer group relative overflow-hidden">
                             <Upload className="w-8 h-8 group-hover:scale-110 transition-transform" />
-                            <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" />
+                            <input type="file" name="photo" className="absolute inset-0 opacity-0 cursor-pointer" />
                         </div>
                         <p className="text-sm font-medium text-slate-900">Photo de profil</p>
                     </div>
@@ -98,6 +147,7 @@ export default function NewTeacherPage() {
                                 <label className="text-sm font-medium text-slate-700">Prénom</label>
                                 <input
                                     type="text"
+                                    name="firstName"
                                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm"
                                 />
                             </div>
@@ -105,6 +155,7 @@ export default function NewTeacherPage() {
                                 <label className="text-sm font-medium text-slate-700">Nom</label>
                                 <input
                                     type="text"
+                                    name="lastName"
                                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm"
                                 />
                             </div>
@@ -117,6 +168,7 @@ export default function NewTeacherPage() {
                                     <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
                                     <input
                                         type="text"
+                                        name="iuense"
                                         placeholder="Ex: ENS001"
                                         className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm"
                                     />
@@ -127,12 +179,16 @@ export default function NewTeacherPage() {
                                 <label className="text-sm font-medium text-slate-700">Matière Principale</label>
                                 <div className="relative">
                                     <BookOpen className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-                                    <select className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm">
+                                    <select
+                                        name="subjectId"
+                                        className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm"
+                                    >
                                         <option value="">Sélectionner...</option>
-                                        <option value="math">Mathématiques</option>
-                                        <option value="physics">Physique</option>
-                                        <option value="french">Français</option>
-                                        <option value="english">Anglais</option>
+                                        {subjects.map((subject) => (
+                                            <option key={subject.id} value={subject.id}>
+                                                {subject.name}
+                                            </option>
+                                        ))}
                                     </select>
                                 </div>
                             </div>
@@ -145,6 +201,7 @@ export default function NewTeacherPage() {
                                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
                                     <input
                                         type="email"
+                                        name="email"
                                         className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm"
                                     />
                                 </div>
@@ -155,6 +212,7 @@ export default function NewTeacherPage() {
                                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
                                     <input
                                         type="tel"
+                                        name="phone"
                                         className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm"
                                     />
                                 </div>
@@ -162,24 +220,27 @@ export default function NewTeacherPage() {
                         </div>
 
                         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-700">Diplôme</label>
-                            <div className="relative">
-                                <GraduationCap className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-                                <input
-                                    type="text"
-                                    placeholder="Ex: Mastère"
-                                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm"
-                                />
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-slate-700">Diplôme</label>
+                                <div className="relative">
+                                    <GraduationCap className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+                                    <input
+                                        type="text"
+                                        name="diploma"
+                                        placeholder="Ex: Mastère"
+                                        className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm"
+                                    />
+                                </div>
                             </div>
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-700">Genre</label>
-                            <select className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm">
-                                <option value="m">Masculin</option>
-                                <option value="f">Féminin</option>
-                            </select>
-                        </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-slate-700">Genre</label>
+                                <select
+                                    name="gender"
+                                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm">
+                                    <option value="m">Masculin</option>
+                                    <option value="f">Féminin</option>
+                                </select>
+                            </div>
                         </div>
 
                     </div>
@@ -197,6 +258,7 @@ export default function NewTeacherPage() {
                                 <label className="text-sm font-medium text-slate-700">Nom d'utilisateur<span className="text-red-500">*</span></label>
                                 <input
                                     type="text"
+                                    name="login"
                                     required
                                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                                 />
@@ -207,6 +269,7 @@ export default function NewTeacherPage() {
                                     <label className="text-sm font-medium text-slate-700">Mot de passe<span className="text-red-500">*</span></label>
                                     <input
                                         type="password"
+                                        name="password"
                                         required
                                         className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                                     />
@@ -215,6 +278,7 @@ export default function NewTeacherPage() {
                                     <label className="text-sm font-medium text-slate-700">Confirmation<span className="text-red-500">*</span></label>
                                     <input
                                         type="password"
+                                        name="confirmPassword"
                                         required
                                         className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                                     />

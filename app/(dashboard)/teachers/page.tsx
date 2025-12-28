@@ -1,18 +1,46 @@
 "use client";
 
-import { useState } from "react";
-import { TEACHERS } from "@/lib/data";
-import { Search, Plus, Mail, Phone, BookOpen, MoreHorizontal, LayoutGrid, List } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, Plus, Mail, Phone, BookOpen, MoreHorizontal, LayoutGrid, List, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
 export default function TeachersPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+    const [teachers, setTeachers] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const filteredTeachers = TEACHERS.filter(teacher =>
-        teacher.name.toLowerCase().includes(searchTerm.toLowerCase())
+    useEffect(() => {
+        fetchTeachers();
+    }, []);
+
+    const fetchTeachers = async () => {
+        try {
+            const res = await fetch('/api/teachers');
+            if (res.ok) {
+                const data = await res.json();
+                setTeachers(data);
+            }
+        } catch (error) {
+            console.error("Failed to fetch teachers", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const filteredTeachers = teachers.filter(teacher =>
+        (teacher.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (teacher.subject?.name || "").toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    if (isLoading) {
+        return (
+            <div className="flex h-96 items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-8">
@@ -40,21 +68,6 @@ export default function TeachersPage() {
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
-                {/** 
-                <div className="flex bg-slate-100 p-1 rounded-xl">
-                    <button
-                        onClick={() => setViewMode("grid")}
-                        className={`p-2 rounded-lg transition-all ${viewMode === "grid" ? "bg-white shadow-sm text-slate-900" : "text-slate-500 hover:text-slate-700"}`}
-                    >
-                        <LayoutGrid className="w-5 h-5" />
-                    </button>
-                    <button
-                        onClick={() => setViewMode("list")}
-                        className={`p-2 rounded-lg transition-all ${viewMode === "list" ? "bg-white shadow-sm text-slate-900" : "text-slate-500 hover:text-slate-700"}`}
-                    >
-                        <List className="w-5 h-5" />
-                    </button>
-                </div>*/}
             </div>
 
             {/* Grid View */}
@@ -68,15 +81,11 @@ export default function TeachersPage() {
                             transition={{ delay: index * 0.05 }}
                             className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:border-emerald-100 transition-all group overflow-hidden"
                         >
-                            {/*<div className="mb-6 h-10 bg-gradient-to-br from-emerald-400 to-teal-500 relative">
-                                <button className="absolute top-2 right-2 p-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-colors">
-                                    <MoreHorizontal className="w-5 h-5" />
-                                </button>
-                            </div>*/}
                             <div className="p-6">
-                                <div className="w-20 h-20 rounded-2xl bg-white p-1 shadow-md mx-auto">
+                                <div className="w-20 h-20 rounded-2xl bg-white p-1 shadow-md mx-auto relative">
                                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img src={teacher.photo} alt={teacher.name} className="w-full h-full object-cover rounded-xl" />
+                                    <img src={teacher.photo || "/avatars/teacher-1.png"} alt={teacher.name} className="w-full h-full object-cover rounded-xl"
+                                        onError={(e) => { (e.target as HTMLImageElement).src = 'https://ui-avatars.com/api/?name=' + teacher.name }} />
                                 </div>
                                 <div className="text-center mt-3">
                                     <Link href={`/teachers/${teacher.id}`} className="font-bold text-slate-900 text-lg hover:text-emerald-600 transition-colors block">
@@ -84,7 +93,7 @@ export default function TeachersPage() {
                                     </Link>
                                     <div className="inline-flex items-center gap-1.5 px-3 py-1 mt-2 rounded-full bg-emerald-50 text-emerald-700 text-sm font-medium">
                                         <BookOpen className="w-3.5 h-3.5" />
-                                        {teacher.subject}
+                                        {teacher.subject?.name || "N/A"}
                                     </div>
                                 </div>
 

@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { PARENTS, STUDENTS } from "@/lib/data";
-import { Search, Plus, Mail, Phone, GraduationCap, ChevronDown, ChevronUp } from "lucide-react";
+import { Search, Plus, Mail, Phone, GraduationCap, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSearchParams } from "next/navigation";
@@ -12,6 +11,10 @@ export default function ParentsPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const searchParams = useSearchParams();
     const highlightId = searchParams.get("highlight");
+
+    const [parents, setParents] = useState<any[]>([]);
+    const [students, setStudents] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
     // Auto-expand searched parent or highlighted parent
     const [expandedIds, setExpandedIds] = useState<string[]>([]);
@@ -23,8 +26,28 @@ export default function ParentsPage() {
         }
     }, [highlightId]);
 
-    const filteredParents = PARENTS.filter(parent =>
-        parent.name.toLowerCase().includes(searchTerm.toLowerCase())
+    useEffect(() => {
+        fetchData();
+    }, []);
+
+    const fetchData = async () => {
+        try {
+            const [parentsRes, studentsRes] = await Promise.all([
+                fetch('/api/parents'),
+                fetch('/api/students')
+            ]);
+
+            if (parentsRes.ok) setParents(await parentsRes.json());
+            if (studentsRes.ok) setStudents(await studentsRes.json());
+        } catch (error) {
+            console.error("Failed to fetch data", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const filteredParents = parents.filter(parent =>
+        (parent.name || "").toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     const toggleExpand = (id: string) => {
@@ -32,6 +55,14 @@ export default function ParentsPage() {
             prev.includes(id) ? prev.filter(pId => pId !== id) : [...prev, id]
         );
     };
+
+    if (isLoading) {
+        return (
+            <div className="flex h-96 items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-pink-600" />
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-8">
@@ -64,8 +95,9 @@ export default function ParentsPage() {
             {/* Grid of Parents */}
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {filteredParents.map((parent, index) => {
-                    const children = STUDENTS.filter(s => parent.childrenIds.includes(s.id));
-                    const isExpanded = expandedIds.includes(parent.id);
+                    // Filter children from the students list where parentId matches
+                    const children = students.filter(s => s.parentId === parent.id);
+                    const isExpanded = expandedIds.includes(String(parent.id));
 
                     return (
                         <motion.div
@@ -75,14 +107,14 @@ export default function ParentsPage() {
                             transition={{ delay: index * 0.05 }}
                             className={cn(
                                 "bg-white rounded-2xl border shadow-sm transition-all duration-300 overflow-hidden group",
-                                highlightId === parent.id ? "ring-2 ring-pink-500 border-pink-500 shadow-pink-100" : "border-slate-100 hover:shadow-md hover:border-slate-200"
+                                highlightId === String(parent.id) ? "ring-2 ring-pink-500 border-pink-500 shadow-pink-100" : "border-slate-100 hover:shadow-md hover:border-slate-200"
                             )}
                         >
                             <div className="p-6">
                                 <div className="flex items-start justify-between">
                                     <div className="flex items-center gap-4">
                                         <div className="w-12 h-12 rounded-full bg-pink-50 flex items-center justify-center text-pink-600 font-bold text-xl">
-                                            {parent.name.charAt(0)}
+                                            {parent.name ? parent.name.charAt(0) : "P"}
                                         </div>
                                         <div>
                                             <Link href={`/parents/${parent.id}`} className="font-bold text-slate-800 text-lg hover:text-pink-600 transition-colors">
@@ -112,7 +144,7 @@ export default function ParentsPage() {
                             {/* Children Section (Expandable) */}
                             <div className="bg-slate-50/50 border-t border-slate-100">
                                 <button
-                                    onClick={() => toggleExpand(parent.id)}
+                                    onClick={() => toggleExpand(String(parent.id))}
                                     className="w-full flex items-center justify-between p-4 text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors"
                                 >
                                     <span>Enfants associés</span>
@@ -128,23 +160,29 @@ export default function ParentsPage() {
                                             className="overflow-hidden"
                                         >
                                             <div className="p-4 pt-0 space-y-2">
-                                                {children.map(child => (
-                                                    <Link
-                                                        href={`/students?highlight=${child.id}`}
-                                                        key={child.id}
-                                                        className="flex items-center gap-3 p-2 rounded-xl bg-white border border-slate-100 hover:border-indigo-200 hover:shadow-sm transition-all group/child"
-                                                    >
-                                                        <div className="w-8 h-8 rounded-full bg-slate-200 overflow-hidden">
-                                                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                            <img src={child.photo} alt={child.firstName + " " + child.lastName} className="w-full h-full object-cover" />
-                                                        </div>
-                                                        <div>
-                                                            <p className="text-sm font-semibold text-slate-700 group-hover/child:text-indigo-600 transition-colors">{child.firstName + " " + child.lastName}</p>
-                                                            <span className="text-xs text-slate-400">Voir profil</span>
-                                                        </div>
-                                                        <ChevronDown className="w-4 h-4 ml-auto -rotate-90 text-slate-300 group-hover/child:text-indigo-400" />
-                                                    </Link>
-                                                ))}
+                                                {children.length > 0 ? (
+                                                    children.map(child => (
+                                                        <Link
+                                                            href={`/students?highlight=${child.id}`}
+                                                            key={child.id}
+                                                            className="flex items-center gap-3 p-2 rounded-xl bg-white border border-slate-100 hover:border-indigo-200 hover:shadow-sm transition-all group/child"
+                                                        >
+                                                            <div className="w-8 h-8 rounded-full bg-slate-200 overflow-hidden">
+                                                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                                <img src={child.photo || "/avatars/student-1.png"} alt={child.firstName + " " + child.lastName} className="w-full h-full object-cover"
+                                                                    onError={(e) => { (e.target as HTMLImageElement).src = 'https://ui-avatars.com/api/?name=' + child.firstName + '+' + child.lastName }}
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-sm font-semibold text-slate-700 group-hover/child:text-indigo-600 transition-colors">{child.firstName + " " + child.lastName}</p>
+                                                                <span className="text-xs text-slate-400">Voir profil</span>
+                                                            </div>
+                                                            <ChevronDown className="w-4 h-4 ml-auto -rotate-90 text-slate-300 group-hover/child:text-indigo-400" />
+                                                        </Link>
+                                                    ))
+                                                ) : (
+                                                    <p className="text-sm text-slate-400 italic px-2">Aucun enfant associé.</p>
+                                                )}
                                             </div>
                                         </motion.div>
                                     )}

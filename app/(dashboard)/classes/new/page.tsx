@@ -9,13 +9,28 @@ export default function NewClassPage() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsLoading(true);
-        setTimeout(() => {
-            setIsLoading(false);
+
+        const formData = new FormData(e.currentTarget);
+
+        try {
+            const res = await fetch("/api/classes", {
+                method: "POST",
+                body: JSON.stringify({ name: formData.get("name"), level: formData.get("level") }),
+            });
+
+            if (!res.ok) throw new Error("Erreur lors de la création");
+
             router.push("/classes");
-        }, 1000);
+            router.refresh();
+        } catch (error) {
+            console.error(error);
+            alert("Une erreur est survenue.");
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -38,26 +53,28 @@ export default function NewClassPage() {
                     <School className="w-5 h-5" />
                     <h3 className="font-bold text-lg">Détails de la Classe</h3>
                 </div>
+                <div className="mt-6 space-y-3">
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-slate-700">Niveau</label>
+                        <select name="level" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm">
+                            <option value="">Sélectionner un niveau...</option>
+                            <option value="1">السابعة أساسي</option>
+                            <option value="2">الثامنة أساسي</option>
+                            <option value="3">التاسعة أساسي</option>
+                        </select>
 
-                <div className="space-y-4">
+                    </div>
+
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-slate-700">Nom de la Classe</label>
                         <input
                             type="text"
-                            placeholder="Ex: 7ème B"
+                            name="name"
+                            placeholder="Ex: 1"
                             className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                         />
                     </div>
 
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-700">Niveau</label>
-                        <select className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm">
-                            <option value="">Sélectionner un niveau...</option>
-                            <option value="1">7ème Année</option>
-                            <option value="2">8ème Année</option>
-                            <option value="3">9ème Année</option>
-                        </select>
-                    </div>
 
                 </div>
 

@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, MapPin, Plus, X, BookOpen, User, Home, Layers, Trash2, Pencil, Printer } from "lucide-react";
+import { useState, useMemo, useEffect } from "react";
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, MapPin, Plus, X, BookOpen, User, Home, Layers, Trash2, Pencil, Printer, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CLASSES, TEACHERS, ROOMS } from "@/lib/data";
 
 const DAYS = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
 const HOURS = ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"];
@@ -13,10 +12,12 @@ interface ScheduleEntry {
     day: string;
     start: string;
     duration: number;
-    subject: string;
+    subjectId: number;
+    subject?: { name: string };
     classId: string;
     teacherId: string;
     roomId: string;
+    as: string;
     color: string;
 }
 
@@ -30,18 +31,29 @@ const COLORS = [
 ];
 
 export default function SchedulePage() {
-    const [currentWeek, setCurrentWeek] = useState("Semaine du 23 Décembre 2024");
+    const [currentWeek, setCurrentWeek] = useState("Semaine actuelle");
     const [viewMode, setViewMode] = useState<"class" | "teacher" | "room">("class");
     const [selectedId, setSelectedId] = useState("");
+    const [selectedAS, setSelectedAS] = useState(() => {
+        const now = new Date();
+        const year = now.getFullYear();
+        return now.getMonth() >= 8 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
+    });
+    const [anneeScolaires, setAnneeScolaires] = useState<string[]>([]);
     const [isAdding, setIsAdding] = useState(false);
     const [editingId, setEditingId] = useState<number | null>(null);
-    const [entries, setEntries] = useState<ScheduleEntry[]>([
-        { id: 1, day: "Lundi", start: "08:00", duration: 2, subject: "Mathématiques", classId: "c1", teacherId: "t1", roomId: "r1", color: COLORS[0] },
-    ]);
+    const [entries, setEntries] = useState<ScheduleEntry[]>([]);
+
+    // Data states
+    const [classes, setClasses] = useState<any[]>([]);
+    const [teachers, setTeachers] = useState<any[]>([]);
+    const [subjects, setSubjects] = useState<any[]>([]);
+    const [rooms, setRooms] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
     // Form State
     const [formData, setFormData] = useState({
-        subject: "",
+        subjectId: "",
         day: "Lundi",
         start: "08:00",
         duration: "1",
@@ -50,47 +62,118 @@ export default function SchedulePage() {
         classId: ""
     });
 
+    useEffect(() => {
+        fetchData();
+    }, []);
+
+    const fetchData = async () => {
+        try {
+            const [scheduleRes, classesRes, teachersRes, roomsRes, subjectsRes] = await Promise.all([
+                fetch('/api/schedule'),
+                fetch('/api/classes'),
+                fetch('/api/teachers'),
+                fetch('/api/rooms'),
+                fetch('/api/subjects')
+            ]);
+
+            if (scheduleRes.ok) {
+                const data = await scheduleRes.json();
+                // Map API data to ScheduleEntry format
+                setEntries(data.map((e: any) => ({
+                    ...e,
+                    classId: String(e.classId),
+                    teacherId: String(e.teacherId),
+                    roomId: String(e.roomId),
+                    subjectId: e.subjectId,
+                    color: COLORS[e.id % COLORS.length]
+                })));
+
+                // Update anneeScolaires from data
+                const yearsInDB = Array.from(new Set(data.map((e: any) => e.as))).filter(Boolean) as string[];
+                const currentYear = (() => {
+                    const now = new Date();
+                    const year = now.getFullYear();
+                    return now.getMonth() >= 8 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
+                })();
+
+                const allYears = Array.from(new Set([currentYear, ...yearsInDB])).sort((a, b) => b.localeCompare(a));
+                setAnneeScolaires(allYears);
+            }
+            if (classesRes.ok) setClasses(await classesRes.json());
+            if (teachersRes.ok) setTeachers(await teachersRes.json());
+            if (roomsRes.ok) setRooms(await roomsRes.json());
+            if (subjectsRes.ok) setSubjects(await subjectsRes.json());
+        } catch (error) {
+            console.error("Failed to fetch schedule data", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const filteredEntries = useMemo(() => {
         if (!selectedId) return [];
         return entries.filter(entry => {
-            if (viewMode === "class") return entry.classId === selectedId;
-            if (viewMode === "teacher") return entry.teacherId === selectedId;
-            return entry.roomId === selectedId;
-        });
-    }, [entries, viewMode, selectedId]);
+            const matchesYear = entry.as === selectedAS;
+            if (!matchesYear) return false;
 
-    const handleAddEntry = (e: React.FormEvent) => {
+            if (viewMode === "class") return String(entry.classId) === selectedId;
+            if (viewMode === "teacher") return String(entry.teacherId) === selectedId;
+            return String(entry.roomId) === selectedId;
+        });
+    }, [entries, viewMode, selectedId, selectedAS]);
+
+    const handleAnneeScolaireChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setSelectedAS(e.target.value);
+    };
+
+    const handleAddEntry = async (e: React.FormEvent) => {
         e.preventDefault();
         const entryData = {
-            subject: formData.subject,
+            subjectId: formData.subjectId ? parseInt(formData.subjectId) : null,
             day: formData.day,
             start: formData.start,
             duration: parseFloat(formData.duration),
             roomId: viewMode === "room" ? selectedId : formData.roomId,
             teacherId: viewMode === "teacher" ? selectedId : formData.teacherId,
             classId: viewMode === "class" ? selectedId : formData.classId,
+            as: selectedAS
         };
 
-        if (editingId) {
-            setEntries(entries.map(e => e.id === editingId ? { ...e, ...entryData } : e));
-        } else {
-            const newEntry: ScheduleEntry = {
-                id: Date.now(),
-                ...entryData,
-                color: COLORS[entries.length % COLORS.length]
-            };
-            setEntries([...entries, newEntry]);
+        try {
+            if (editingId) {
+                const res = await fetch(`/api/schedule/${editingId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(entryData)
+                });
+                if (res.ok) {
+                    const updated = await res.json();
+                    setEntries(entries.map(e => e.id === editingId ? { ...updated, classId: String(updated.classId), teacherId: String(updated.teacherId), roomId: String(updated.roomId), color: e.color } : e));
+                }
+            } else {
+                const res = await fetch('/api/schedule', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(entryData)
+                });
+                if (res.ok) {
+                    const newEntry = await res.json();
+                    setEntries([...entries, { ...newEntry, classId: String(newEntry.classId), teacherId: String(newEntry.teacherId), roomId: String(newEntry.roomId), color: COLORS[entries.length % COLORS.length] }]);
+                }
+            }
+        } catch (err) {
+            console.error("Failed to save entry", err);
         }
 
         setIsAdding(false);
         setEditingId(null);
-        setFormData({ ...formData, subject: "" });
+        setFormData({ ...formData, subjectId: "" });
     };
 
     const handleEditEntry = (entry: ScheduleEntry) => {
         setEditingId(entry.id);
         setFormData({
-            subject: entry.subject,
+            subjectId: String(entry.subjectId),
             day: entry.day,
             start: entry.start,
             duration: entry.duration.toString(),
@@ -101,15 +184,28 @@ export default function SchedulePage() {
         setIsAdding(true);
     };
 
-    const handleDeleteEntry = (id: number) => {
+    const handleDeleteEntry = async (id: number) => {
         if (window.confirm("Voulez-vous vraiment supprimer ce cours ?")) {
-            setEntries(entries.filter(e => e.id !== id));
+            try {
+                await fetch(`/api/schedule/${id}`, { method: 'DELETE' });
+                setEntries(entries.filter(e => e.id !== id));
+            } catch (err) {
+                console.error(err);
+            }
         }
     };
 
     const handlePrint = () => {
         window.print();
     };
+
+    if (isLoading) {
+        return (
+            <div className="flex h-96 items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-8 h-[calc(100vh-8rem)] flex flex-col relative">
@@ -121,9 +217,9 @@ export default function SchedulePage() {
                         <p className="text-lg font-bold text-slate-700 mt-1">
                             {viewMode === "class" ? "Classe : " : viewMode === "teacher" ? "Enseignant : " : "Salle : "}
                             {selectedId ? (
-                                viewMode === "class" ? CLASSES.find(c => c.id === selectedId)?.name :
-                                    viewMode === "teacher" ? TEACHERS.find(t => t.id === selectedId)?.name :
-                                        ROOMS.find(r => r.id === selectedId)?.name
+                                viewMode === "class" ? classes.find(c => String(c.id) === selectedId)?.name :
+                                    viewMode === "teacher" ? teachers.find(t => String(t.id) === selectedId)?.name :
+                                        rooms.find(r => String(r.id) === selectedId)?.name
                             ) : "Aucun sélectionné"}
                         </p>
                     </div>
@@ -199,7 +295,7 @@ export default function SchedulePage() {
             `}</style>
 
             {/* Header */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 shrink-0 no-print">
+            <div className="flex flex-col lg:flex-row lg:items-center gap-6 shrink-0 no-print">
                 <div>
                     <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
                         <CalendarIcon className="w-8 h-8 text-indigo-600" />
@@ -208,6 +304,24 @@ export default function SchedulePage() {
                     <p className="text-slate-500 mt-1">Gérer les plannings par classe ou enseignant.</p>
                 </div>
 
+                {/** Annee Scolaire */}
+                <div className="flex flex-wrap items-center gap-4">
+                    <label className="text-sm font-medium text-slate-700">Année Scolaire</label>
+                    <select
+                        value={selectedAS}
+                        name="as"
+                        onChange={handleAnneeScolaireChange}
+                        className="p-2.5 bg-white border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm font-medium text-slate-700 min-w-[200px]"
+                    >
+
+                        {
+                            anneeScolaires.map((as, index) => <option key={index} value={as}>{as}</option>)
+                        }
+                    </select>
+                </div>
+            </div><br />
+
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 shrink-0 no-print">
                 <div className="flex flex-wrap items-center gap-4">
                     {/* View Switcher */}
                     <div className="bg-slate-100 p-1 rounded-xl flex items-center">
@@ -242,11 +356,11 @@ export default function SchedulePage() {
                     >
                         <option value="">Sélectionner {viewMode === "class" ? "une classe" : viewMode === "teacher" ? "un enseignant" : "une salle"}...</option>
                         {viewMode === "class" ? (
-                            CLASSES.map(c => <option key={c.id} value={c.id}>{c.name}</option>)
+                            classes.map(c => <option key={c.id} value={c.id}>{(c.level === "1") ? `السابعة أساسي ${c.name}` : (c.level === "2") ? `الثامنة أساسي ${c.name}` : (c.level === "3") ? `التاسعة أساسي ${c.name}` : ""}</option>)
                         ) : viewMode === "teacher" ? (
-                            TEACHERS.map(t => <option key={t.id} value={t.id}>{t.name}</option>)
+                            teachers.map(t => <option key={t.id} value={t.id}>{t.name}</option>)
                         ) : (
-                            ROOMS.map(r => <option key={r.id} value={r.id}>{r.name}</option>)
+                            rooms.map(r => <option key={r.id} value={r.id}>{r.name}</option>)
                         )}
                     </select>
 
@@ -255,12 +369,12 @@ export default function SchedulePage() {
                             setEditingId(null);
                             setIsAdding(true);
                             if (viewMode === "teacher") {
-                                const teacher = TEACHERS.find(t => t.id === selectedId);
-                                setFormData(prev => ({ ...prev, subject: teacher?.subject || "", teacherId: selectedId, classId: "", roomId: "" }));
+                                const teacher = teachers.find(t => String(t.id) === selectedId);
+                                setFormData(prev => ({ ...prev, subjectId: String(teacher?.subjectId || ""), teacherId: selectedId, classId: "", roomId: "" }));
                             } else if (viewMode === "class") {
-                                setFormData(prev => ({ ...prev, roomId: "", classId: selectedId, teacherId: "", subject: "" }));
+                                setFormData(prev => ({ ...prev, roomId: "", classId: selectedId, teacherId: "", subjectId: "" }));
                             } else {
-                                setFormData(prev => ({ ...prev, roomId: selectedId, classId: "", teacherId: "", subject: "" }));
+                                setFormData(prev => ({ ...prev, roomId: selectedId, classId: "", teacherId: "", subjectId: "" }));
                             }
                         }}
                         disabled={!selectedId}
@@ -326,9 +440,9 @@ export default function SchedulePage() {
                                         const top = `calc(var(--print-hour-height) * ${offset})`;
                                         const height = `calc(var(--print-hour-height) * ${item.duration})`;
 
-                                        const room = ROOMS.find(r => r.id === item.roomId);
-                                        const teacher = TEACHERS.find(t => t.id === item.teacherId);
-                                        const studentClass = CLASSES.find(c => c.id === item.classId);
+                                        const room = rooms.find(r => String(r.id) === item.roomId);
+                                        const teacher = teachers.find(t => String(t.id) === item.teacherId);
+                                        const studentClass = classes.find(c => String(c.id) === item.classId);
 
                                         return (
                                             <motion.div
@@ -368,7 +482,7 @@ export default function SchedulePage() {
 
                                                     <div className="flex flex-col h-full justify-between">
                                                         <div>
-                                                            <span className="text-xs font-bold uppercase opacity-70 block mb-1 truncate">{item.subject}</span>
+                                                            <span className="text-xs font-bold uppercase opacity-70 block mb-1 truncate">{item.subject?.name}</span>
                                                             <div className="flex flex-col gap-1">
                                                                 <div className={`flex items-center gap-1.5 ${viewMode === "teacher" ? "no-print" : ""}`}>
                                                                     <User className="w-3 h-3 text-current opacity-60" />
@@ -379,7 +493,9 @@ export default function SchedulePage() {
                                                                 <div className={`flex items-center gap-1.5 ${viewMode === "class" ? "no-print" : ""}`}>
                                                                     <Home className="w-3 h-3 text-current opacity-60" />
                                                                     <span className="font-medium text-[12px] block truncate opacity-90">
-                                                                        {studentClass?.name}
+                                                                        {//studentClass?.name
+                                                                            (studentClass?.level === "1") ? `السابعة أساسي ${studentClass?.name}` : (studentClass?.level === "2") ? `الثامنة أساسي ${studentClass?.name}` : (studentClass?.level === "3") ? `التاسعة أساسي ${studentClass?.name}` : ""
+                                                                        }
                                                                     </span>
                                                                 </div>
                                                             </div>
@@ -466,19 +582,19 @@ export default function SchedulePage() {
                                                 required
                                                 readOnly
                                                 type="text"
-                                                value={formData.subject}
+                                                value={subjects.find(s => String(s.id) === formData.subjectId)?.name || ""}
                                                 className="w-full pl-10 pr-4 py-2 bg-slate-100 border border-slate-200 rounded-xl outline-none text-slate-500 cursor-not-allowed text-sm"
                                             />
                                         ) : (
                                             <select
                                                 required
-                                                value={formData.subject}
-                                                onChange={(e) => setFormData({ ...formData, subject: e.target.value, teacherId: "" })}
+                                                value={formData.subjectId}
+                                                onChange={(e) => setFormData({ ...formData, subjectId: e.target.value, teacherId: "" })}
                                                 className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm appearance-none"
                                             >
                                                 <option value="">Sélectionner une matière...</option>
-                                                {Array.from(new Set(TEACHERS.map(t => t.subject))).map(s => (
-                                                    <option key={s} value={s}>{s}</option>
+                                                {subjects.map(s => (
+                                                    <option key={s.id} value={s.id}>{s.name}</option>
                                                 ))}
                                             </select>
                                         )}
@@ -528,7 +644,7 @@ export default function SchedulePage() {
                                                 <input
                                                     readOnly
                                                     type="text"
-                                                    value={ROOMS.find(r => r.id === formData.roomId)?.name || ""}
+                                                    value={rooms.find(r => String(r.id) === formData.roomId)?.name || ""}
                                                     className="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-xl outline-none text-slate-500 cursor-not-allowed text-sm"
                                                 />
                                             ) : (
@@ -539,7 +655,7 @@ export default function SchedulePage() {
                                                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                                                 >
                                                     <option value="">Sélectionner une salle...</option>
-                                                    {ROOMS.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+                                                    {rooms.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
                                                 </select>
                                             )}
                                         </div>
@@ -557,7 +673,7 @@ export default function SchedulePage() {
                                                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                                             >
                                                 <option value="">Choisir...</option>
-                                                {TEACHERS.filter(t => !formData.subject || t.subject === formData.subject).map(t => (
+                                                {teachers.filter(t => !formData.subjectId || String(t.subjectId) === formData.subjectId).map(t => (
                                                     <option key={t.id} value={t.id}>{t.name}</option>
                                                 ))}
                                             </select>
@@ -571,7 +687,9 @@ export default function SchedulePage() {
                                                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                                             >
                                                 <option value="">Choisir...</option>
-                                                {CLASSES.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                                {classes.map(c => <option key={c.id} value={c.id}>
+                                                    {(c.level === "1") ? `السابعة أساسي ${c.name}` : (c.level === "2") ? `الثامنة أساسي ${c.name}` : (c.level === "3") ? `التاسعة أساسي ${c.name}` : ""}
+                                                </option>)}
                                             </select>
                                         </div>
                                     </div>
@@ -585,7 +703,7 @@ export default function SchedulePage() {
                                             className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                                         >
                                             <option value="">Sélectionner un enseignant...</option>
-                                            {TEACHERS.filter(t => !formData.subject || t.subject === formData.subject).map(t => (
+                                            {teachers.filter(t => !formData.subjectId || String(t.subjectId) === formData.subjectId).map(t => (
                                                 <option key={t.id} value={t.id}>{t.name}</option>
                                             ))}
                                         </select>
@@ -600,7 +718,9 @@ export default function SchedulePage() {
                                             className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                                         >
                                             <option value="">Sélectionner une classe...</option>
-                                            {CLASSES.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                            {classes.map(c => <option key={c.id} value={c.id}>
+                                                {(c.level === "1") ? `السابعة أساسي ${c.name}` : (c.level === "2") ? `الثامنة أساسي ${c.name}` : (c.level === "3") ? `التاسعة أساسي ${c.name}` : ""}
+                                            </option>)}
                                         </select>
                                     </div>
                                 )}
