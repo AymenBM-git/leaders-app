@@ -490,7 +490,7 @@ export default function SchedulePage() {
                                                                         {teacher?.name}
                                                                     </span>
                                                                 </div>
-                                                                <div className={`flex items-center gap-1.5 ${viewMode === "class" ? "no-print" : ""}`}>
+                                                                <div className="flex items-center gap-1.5">
                                                                     <Home className="w-3 h-3 text-current opacity-60" />
                                                                     <span className="font-medium text-[12px] block truncate opacity-90">
                                                                         {//studentClass?.name

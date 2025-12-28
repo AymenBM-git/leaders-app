@@ -1,4 +1,4 @@
-import  prisma  from '../../../lib/prisma';
+import prisma from '../../../lib/prisma';
 import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs';
 import { writeFile, mkdir } from 'fs/promises';
@@ -12,6 +12,7 @@ export async function GET() {
         }
     })
     return NextResponse.json(teachers)
+
 }
 
 export async function POST(request: Request) {

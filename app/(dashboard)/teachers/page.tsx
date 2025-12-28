@@ -30,7 +30,7 @@ export default function TeachersPage() {
     };
 
     const filteredTeachers = teachers.filter(teacher =>
-        (teacher.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (teacher.name || teacher.user?.login || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
         (teacher.subject?.name || "").toLowerCase().includes(searchTerm.toLowerCase())
     );
 
@@ -84,13 +84,13 @@ export default function TeachersPage() {
                             <div className="p-6">
                                 <div className="w-20 h-20 rounded-2xl bg-white p-1 shadow-md mx-auto relative">
                                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img src={teacher.photo || "/avatars/teacher-1.png"} alt={teacher.name} className="w-full h-full object-cover rounded-xl"
-                                        onError={(e) => { (e.target as HTMLImageElement).src = 'https://ui-avatars.com/api/?name=' + teacher.name }} />
+                                    <img src={teacher.photo || "/avatars/teacher-1.png"} alt={teacher.name || teacher.user?.login} className="w-full h-full object-cover rounded-xl"
+                                        onError={(e) => { (e.target as HTMLImageElement).src = 'https://ui-avatars.com/api/?name=' + (teacher.name || teacher.user?.login) }} />
                                 </div>
                                 <div className="text-center mt-3">
                                     <Link href={`/teachers/${teacher.id}`} className="font-bold text-slate-900 text-lg hover:text-emerald-600 transition-colors block">
-                                        {teacher.name}
-                                    </Link>
+                                        {teacher.name || teacher.user?.login}
+                                    </Link> <br />
                                     <div className="inline-flex items-center gap-1.5 px-3 py-1 mt-2 rounded-full bg-emerald-50 text-emerald-700 text-sm font-medium">
                                         <BookOpen className="w-3.5 h-3.5" />
                                         {teacher.subject?.name || "N/A"}

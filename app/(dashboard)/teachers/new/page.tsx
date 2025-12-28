@@ -144,18 +144,10 @@ export default function NewTeacherPage() {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-700">Prénom</label>
+                                <label className="text-sm font-medium text-slate-700">Nom Complet</label>
                                 <input
                                     type="text"
-                                    name="firstName"
-                                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-700">Nom</label>
-                                <input
-                                    type="text"
-                                    name="lastName"
+                                    name="name"
                                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm"
                                 />
                             </div>
