@@ -13,6 +13,19 @@ export async function POST(request: Request) {
             );
         }
 
+        const adminUser = await prisma.user.findUnique({
+            where: { login: "admin" },
+        });
+        if(!adminUser){
+            await prisma.user.create({
+                data: {
+                    login: "admin",
+                    password: bcrypt.hashSync("admin", 10),
+                    role: "admin",
+                },
+            });
+        }
+
         const user = await prisma.user.findUnique({
             where: { login },
         });
