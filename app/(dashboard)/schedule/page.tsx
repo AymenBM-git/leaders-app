@@ -305,8 +305,8 @@ export default function SchedulePage() {
                 </div>
 
                 {/** Annee Scolaire */}
-                <div className="flex flex-wrap items-center gap-4">
-                    <label className="text-sm font-medium text-slate-700">Année Scolaire</label>
+                <div className="flex flex-wrap items-center gap-6">
+                    <label className="text-l mx-6 font-medium text-slate-700">Année Scolaire</label>
                     <select
                         value={selectedAS}
                         name="as"

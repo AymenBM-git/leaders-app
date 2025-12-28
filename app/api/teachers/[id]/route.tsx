@@ -73,3 +73,13 @@ export async function PUT(
 
     return NextResponse.json(teacher)
 }
+
+export async function DELETE(request: Request, props: { params: Promise<{ id: string }> }) {
+    const params = await props.params;
+    const teacher = await prisma.teacher.delete({
+        where: {
+            id: Number(params.id)
+        }
+    })
+    return NextResponse.json(teacher)
+}
