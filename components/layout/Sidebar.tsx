@@ -44,7 +44,7 @@ const routes = [
         color: "text-pink-500",
     },
     {
-        label: "Payements",
+        label: "Paiements",
         icon: CreditCard,
         href: "/payments",
         color: "text-blue-500",

@@ -19,6 +19,7 @@ const currentYear = (() => {
 export default function NewStudentPage() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
+    const [asCourant, setAsCourant] = useState<string>(currentYear);
     const [parents, setParents] = useState<Parent[]>([]);
     const [anneeScolaires, setAnneeScolaires] = useState<string[]>([]);
 
@@ -135,6 +136,21 @@ export default function NewStudentPage() {
                                         anneeScolaires.map((as, index) => <option key={index} value={as}>{as}</option>)
                                     }
                                 </select>
+                                {/*<input
+                                    type="text"
+                                    name="as"
+                                    list="anneeScolaires"
+                                    placeholder="Ex: 2025/2026"
+                                    value={asCourant}
+                                    onChange={(e) => setAsCourant(e.target.value)}
+                                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
+                                    required
+                                />
+                                <datalist id="anneeScolaires">
+                                    {
+                                        anneeScolaires.map((as, index) => <option key={index} value={as}>{as}</option>)
+                                    }
+                                </datalist>*/}
                             </div>
                             {/* Type */}
                             <div className="space-y-2">
