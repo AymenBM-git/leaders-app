@@ -43,6 +43,17 @@ model Parent {
   childrenIds Student[]
   username    String?
   password    String?
+  payments    Payment[]
+}
+
+model Payment {
+  id          Int       @id @default(autoincrement())
+  amount      Float?
+  paymentDate DateTime? @default(now())
+  as          String?
+  type        String?
+  parent      Parent?   @relation(fields: [parentId], references: [id])
+  parentId    Int?
 }
 
 model Teacher {

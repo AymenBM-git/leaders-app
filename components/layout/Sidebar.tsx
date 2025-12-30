@@ -15,13 +15,16 @@ import {
     School,
     Menu,
     X,
-    MapPin
+    MapPin,
+    CreditCard
 } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { useSidebar } from "./SidebarContext";
 
 const routes = [
+    // ... (omitted for brevity in replacement, but I will include it properly)
     {
         label: "Tableau de bord",
         icon: LayoutDashboard,
@@ -39,6 +42,12 @@ const routes = [
         icon: Users,
         href: "/parents",
         color: "text-pink-500",
+    },
+    {
+        label: "Payements",
+        icon: CreditCard,
+        href: "/payments",
+        color: "text-blue-500",
     },
     {
         label: "Enseignants",
@@ -75,7 +84,7 @@ const routes = [
 export const Sidebar = () => {
     const pathname = usePathname();
     const router = useRouter();
-    const [isMobileOpen, setIsMobileOpen] = useState(false);
+    const { isOpen, close } = useSidebar();
 
     const handleLogout = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -88,24 +97,14 @@ export const Sidebar = () => {
 
     return (
         <>
-            {/* Mobile Trigger */}
-            <div className="md:hidden fixed top-4 left-4 z-50">
-                <button
-                    onClick={() => setIsMobileOpen(!isMobileOpen)}
-                    className="p-2 bg-white rounded-full shadow-lg text-slate-900"
-                >
-                    {isMobileOpen ? <X size={20} /> : <Menu size={20} />}
-                </button>
-            </div>
-
             {/* Desktop & Mobile Sidebar */}
             <div className={cn(
-                "fixed inset-y-0 left-0 z-40 w-72 bg-slate-900 text-white transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:inset-auto",
-                isMobileOpen ? "translate-x-0" : "-translate-x-full"
+                "fixed inset-y-0 left-0 z-40 w-72 bg-slate-900 text-white transition-transform duration-300 ease-in-out md:translate-x-0",
+                isOpen ? "translate-x-0" : "-translate-x-full"
             )}>
                 <div className="h-full flex flex-col glass-effect-sidebar bg-[#111827]">
-                    {/* Logo */}
-                    <div className="px-6 py-8 flex items-center">
+                    {/* Logo with close button for mobile */}
+                    <div className="px-6 py-8 flex items-center justify-between">
                         <Link href="/dashboard" className="flex items-center gap-x-2">
                             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-500 flex items-center justify-center">
                                 <School className="text-white w-6 h-6" />
@@ -114,6 +113,12 @@ export const Sidebar = () => {
                                 GSI Leaders
                             </h1>
                         </Link>
+                        <button
+                            onClick={close}
+                            className="md:hidden text-zinc-400 hover:text-white transition-colors"
+                        >
+                            <X size={24} />
+                        </button>
                     </div>
 
                     {/* Routes */}
@@ -122,6 +127,7 @@ export const Sidebar = () => {
                             <Link
                                 key={route.href}
                                 href={route.href}
+                                onClick={() => close()}
                                 className={cn(
                                     "flex items-center group w-full p-3 rounded-xl transition-all duration-200 hover:bg-white/10",
                                     pathname === route.href
@@ -145,7 +151,7 @@ export const Sidebar = () => {
 
                     {/* User / Settings Footer */}
                     <div className="mt-auto px-3 py-6 border-t border-white/10">
-                        <Link href="/settings" className="flex items-center p-3 rounded-xl hover:bg-white/10 text-zinc-400 transition-colors">
+                        <Link href="/settings" onClick={() => close()} className="flex items-center p-3 rounded-xl hover:bg-white/10 text-zinc-400 transition-colors">
                             <Settings className="h-5 w-5 mr-3" />
                             <span className="font-medium text-sm">Paramètres</span>
                         </Link>
@@ -161,12 +167,17 @@ export const Sidebar = () => {
             </div>
 
             {/* Overlay for mobile */}
-            {isMobileOpen && (
-                <div
-                    className="fixed inset-0 bg-black/50 z-30 md:hidden"
-                    onClick={() => setIsMobileOpen(false)}
-                />
-            )}
+            <AnimatePresence>
+                {isOpen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 md:hidden"
+                        onClick={close}
+                    />
+                )}
+            </AnimatePresence>
         </>
     );
 };

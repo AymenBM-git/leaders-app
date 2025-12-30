@@ -1,10 +1,12 @@
 "use client";
 
-import { Bell, Search } from "lucide-react";
+import { Bell, Search, Menu as MenuIcon } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useSidebar } from "./SidebarContext";
 
 export const Topbar = () => {
     const [user, setUser] = useState({ name: "Utilisateur", role: "" });
+    const { toggle } = useSidebar();
 
     useEffect(() => {
         const cookies = document.cookie.split(';').reduce((acc, cookie) => {
@@ -22,8 +24,14 @@ export const Topbar = () => {
     }, []);
 
     return (
-        <div className="h-20 px-8 flex items-center justify-between glass-effect border-b bg-white/50 backdrop-blur-sm sticky top-0 z-30">
+        <div className="h-20 px-4 md:px-8 flex items-center justify-between glass-effect border-b bg-white/50 backdrop-blur-sm sticky top-0 z-30">
             <div className="flex items-center gap-x-4">
+                <button
+                    onClick={toggle}
+                    className="p-2 md:hidden hover:bg-slate-100 rounded-lg transition-colors"
+                >
+                    <MenuIcon className="h-6 w-6 text-slate-600" />
+                </button>
                 <h2 className="text-xl font-semibold text-slate-800 hidden md:block">
                     Tableau de bord
                 </h2>

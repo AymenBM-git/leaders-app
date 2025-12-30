@@ -100,7 +100,13 @@ export default function StudentsPage() {
                         >
                             <option value="">Toutes les classes</option>
                             {classes.map(c => (
-                                <option key={c.id} value={c.id}>{c.name}</option>
+                                <option key={c.id} value={c.id}>
+                                    {c.level ? (
+                                                    (c.level === "1" ? "السابعة أساسي " :
+                                                        c.level === "2" ? "الثامنة أساسي " :
+                                                            c.level === "3" ? "التاسعة أساسي " : "") + c.name
+                                                ) : "N/A"}
+                                </option>
                             ))}
                         </select>
                     </div>
