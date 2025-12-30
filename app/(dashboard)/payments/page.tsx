@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { Search, Plus, Filter, Eye, Trash2, Loader2, CreditCard, User } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Parent } from "@prisma/client";
 
 interface Payment {
     id: number;
@@ -61,7 +60,7 @@ export default function StudentsPage() {
                 setTotaux(resData);
             }
         } catch (error) {
-            console.error("Failed to fetch data", error);        
+            console.error("Failed to fetch data", error);
         } finally {
             setIsLoading(false);
         }
@@ -123,18 +122,18 @@ export default function StudentsPage() {
                 {/* Annee Scolaire Filter */}
                 <div className="flex gap-2 w-full md:w-auto">
                     <div className="relative">
-                    <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4" />
-                    <select
-                        value={selectedAS}
-                        name="as"
-                        onChange={(e) => setSelectedAS(e.target.value)}
-                        className="appearance-none pl-10 pr-8 py-2 bg-slate-50 text-slate-600 rounded-xl font-medium hover:bg-slate-100 border border-slate-200/50 outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer"
-                    >
+                        <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4" />
+                        <select
+                            value={selectedAS}
+                            name="as"
+                            onChange={(e) => setSelectedAS(e.target.value)}
+                            className="appearance-none pl-10 pr-8 py-2 bg-slate-50 text-slate-600 rounded-xl font-medium hover:bg-slate-100 border border-slate-200/50 outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer"
+                        >
 
-                        {
-                            anneeScolaires.map((as, index) => <option key={index} value={as}>{as}</option>)
-                        }
-                    </select>
+                            {
+                                anneeScolaires.map((as, index) => <option key={index} value={as}>{as}</option>)
+                            }
+                        </select>
                     </div>
                 </div>
             </div>
