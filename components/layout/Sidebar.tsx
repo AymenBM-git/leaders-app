@@ -106,9 +106,9 @@ export const Sidebar = () => {
                     {/* Logo with close button for mobile */}
                     <div className="px-6 py-8 flex items-center justify-between">
                         <Link href="/dashboard" className="flex items-center gap-x-2">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-500 flex items-center justify-center">
+                            {/*<div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-500 flex items-center justify-center">
                                 <School className="text-white w-6 h-6" />
-                            </div>
+                            </div>*/}<div className="w-10 h-10 rounded-xl"><img src="logo.png" alt="Logo" className="w-10 h-10" /></div>
                             <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-200 to-white">
                                 GSI Leaders
                             </h1>

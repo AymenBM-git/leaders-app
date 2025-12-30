@@ -62,9 +62,9 @@ export default function LoginPage() {
                     {/* Header */}
                     <div className="space-y-2">
                         <div className="flex items-center gap-2 mb-6">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-500 flex items-center justify-center">
+                            {/*<div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-500 flex items-center justify-center">
                                 <School className="text-white w-6 h-6" />
-                            </div>
+                            </div>*/}<div className="w-10 h-10 rounded-xl"><img src="logo.png" alt="Logo" className="w-10 h-10" /></div>
                             <h1 className="text-xl font-bold text-slate-900">GSI Collège Les Leaders Boumhel</h1>
                         </div>
                         <h2 className="text-3xl font-bold tracking-tight text-slate-900">
