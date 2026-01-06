@@ -1,6 +1,7 @@
 import  prisma  from '../../../lib/prisma';
 import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
+import { cookies } from 'next/headers';
 
 export async function GET() {
     const parents = await prisma.parent.findMany({
@@ -29,6 +30,17 @@ export async function POST(request: Request) {
                 password: hashedPassword,
             }
         })
+
+        // 1. Log Activity
+            const cookiesStore = cookies();
+            const nameuser= String((await cookiesStore).get('user-name')?.value);
+            await prisma.activity.create({
+                data: {
+                    nameUser: nameuser,
+                    description: `a créé le parent ${parent.name}`,
+                }
+            });
+            
         return NextResponse.json(parent)
     } catch (error) {
         console.error("Error creating parent:", error)

@@ -26,6 +26,22 @@ export default function EditRoomPage({ params }: { params: Promise<{ id: string 
         fetchRoom();
     }, [unwrappedParams.id]);
 
+    const getCookie = (name: string) => {
+        if (typeof document === "undefined") return null;
+
+        return document.cookie
+            .split("; ")
+            .find(row => row.startsWith(name + "="))
+            ?.split("=")[1] ?? null;
+        };
+
+    const [role, setRole] = useState('');
+
+    useEffect(() => {
+            setRole(getCookie("user-role") ?? "N/A");
+        }, []);
+    let isReadOnly = role !== 'admin';
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsLoading(true);
@@ -97,14 +113,14 @@ export default function EditRoomPage({ params }: { params: Promise<{ id: string 
                         <p className="text-slate-500 text-sm">Gérer les informations de la salle.</p>
                     </div>
                 </div>
-                <button
+                {!isReadOnly && <button
                     onClick={handleDelete}
                     disabled={isDeleting}
                     className="px-4 py-2 rounded-xl bg-red-50 text-red-600 font-medium hover:bg-red-100 hover:text-red-700 transition-colors flex items-center gap-2 disabled:opacity-50"
                 >
                     {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                     Supprimer
-                </button>
+                </button>}
             </div>
 
             <form onSubmit={handleSubmit} className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-6">
@@ -120,6 +136,7 @@ export default function EditRoomPage({ params }: { params: Promise<{ id: string 
                             name="name"
                             type="text"
                             defaultValue={room.name}
+                            readOnly={isReadOnly}
                             className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                         />
                     </div>
@@ -127,7 +144,11 @@ export default function EditRoomPage({ params }: { params: Promise<{ id: string 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-slate-700">Type</label>
-                            <select name="type" defaultValue={room.type} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm">
+                            <select 
+                                name="type" 
+                                defaultValue={room.type}
+                                disabled={isReadOnly} 
+                                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm">
                                 <option value="Classroom">Salle de Classe</option>
                                 <option value="Laboratory">Laboratoire</option>
                                 <option value="Amphitheater">Amphithéâtre</option>
@@ -142,6 +163,7 @@ export default function EditRoomPage({ params }: { params: Promise<{ id: string 
                                     type="number"
                                     min="1"
                                     defaultValue={room.capacity}
+                                    readOnly={isReadOnly}
                                     className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                                 />
                             </div>
@@ -150,7 +172,9 @@ export default function EditRoomPage({ params }: { params: Promise<{ id: string 
 
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-slate-700">Statut</label>
-                        <select name="status" defaultValue={room.status} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm">
+                        <select name="status" defaultValue={room.status}
+                             disabled={isReadOnly}
+                             className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm">
                             <option value="Available">Disponible</option>
                             <option value="Maintenance">Maintenance</option>
                         </select>
@@ -165,7 +189,7 @@ export default function EditRoomPage({ params }: { params: Promise<{ id: string 
                     >
                         Annuler
                     </button>
-                    <button
+                    {!isReadOnly && <button
                         type="submit"
                         disabled={isLoading}
                         className="px-6 py-2.5 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700 shadow-lg shadow-indigo-500/20 transition-all flex items-center gap-2 disabled:opacity-70"
@@ -181,7 +205,7 @@ export default function EditRoomPage({ params }: { params: Promise<{ id: string 
                                 Mettre à jour
                             </>
                         )}
-                    </button>
+                    </button>}
                 </div>
             </form>
         </div>

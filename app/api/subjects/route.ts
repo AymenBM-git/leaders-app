@@ -1,3 +1,4 @@
+import { cookies } from 'next/headers';
 import  prisma  from '../../../lib/prisma';
 import { NextResponse } from 'next/server'
 
@@ -27,6 +28,16 @@ export async function POST(request: Request) {
             codematiere: json.codematiere,
         }
     })
+
+    // 1. Log Activity
+        const cookiesStore = cookies();
+        const nameuser= String((await cookiesStore).get('user-name')?.value);
+        await prisma.activity.create({
+            data: {
+                nameUser: nameuser,
+                description: `a créé la matière ${subject.name}.`,
+            }
+        });
 
     return NextResponse.json(subject)
 }

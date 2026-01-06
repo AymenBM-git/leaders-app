@@ -62,6 +62,22 @@ export default function TeacherDetailsPage({ params }: { params: Promise<{ id: s
         }
     };
 
+    const getCookie = (name: string) => {
+        if (typeof document === "undefined") return null;
+
+        return document.cookie
+            .split("; ")
+            .find(row => row.startsWith(name + "="))
+            ?.split("=")[1] ?? null;
+        };
+
+    const [role, setRole] = useState('');
+
+    useEffect(() => {
+            setRole(getCookie("user-role") ?? "N/A");
+        }, []);
+    let isReadOnly = role !== 'admin';
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsSaving(true);
@@ -143,10 +159,10 @@ export default function TeacherDetailsPage({ params }: { params: Promise<{ id: s
                     </div>
                 </div>
                 {/* Delete button (placeholder for now) */}
-                <button className="px-4 py-2 rounded-xl bg-red-50 text-red-600 font-medium hover:bg-red-100 hover:text-red-700 transition-colors flex items-center gap-2">
+                {!isReadOnly && <button className="px-4 py-2 rounded-xl bg-red-50 text-red-600 font-medium hover:bg-red-100 hover:text-red-700 transition-colors flex items-center gap-2">
                     <Trash2 className="w-4 h-4" />
                     Supprimer
-                </button>
+                </button>}
             </div>
 
 
@@ -164,7 +180,7 @@ export default function TeacherDetailsPage({ params }: { params: Promise<{ id: s
                             <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                 <Upload className="w-8 h-8 text-white" />
                             </div>
-                            <input type="file" name="photo" className="absolute inset-0 opacity-0 cursor-pointer" />
+                            <input type="file" name="photo" disabled={isReadOnly} className="absolute inset-0 opacity-0 cursor-pointer" />
                         </div>
                         <p className="text-lg font-bold text-slate-900">{teacher.name}</p>
                     </div>
@@ -184,6 +200,7 @@ export default function TeacherDetailsPage({ params }: { params: Promise<{ id: s
                                 <input
                                     type="text"
                                     name="name"
+                                    readOnly={isReadOnly}
                                     defaultValue={teacher.name || ""}
                                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm"
                                 />
@@ -198,7 +215,8 @@ export default function TeacherDetailsPage({ params }: { params: Promise<{ id: s
                                     <input
                                         type="text"
                                         name="iuense"
-                                        placeholder="Ex: ENS001"
+                                        placeholder="Ex: 0012345678"
+                                        readOnly={isReadOnly}
                                         defaultValue={teacher.iuense || ""}
                                         className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm"
                                     />
@@ -211,6 +229,7 @@ export default function TeacherDetailsPage({ params }: { params: Promise<{ id: s
                                     <select
                                         name="subjectId"
                                         defaultValue={teacher.subjectId || ""}
+                                        disabled={isReadOnly}
                                         className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm"
                                     >
                                         <option value="">Sélectionner...</option>
@@ -232,6 +251,7 @@ export default function TeacherDetailsPage({ params }: { params: Promise<{ id: s
                                     <input
                                         type="email"
                                         name="email"
+                                        readOnly={isReadOnly}
                                         defaultValue={teacher.email || ""}
                                         className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm"
                                     />
@@ -261,6 +281,7 @@ export default function TeacherDetailsPage({ params }: { params: Promise<{ id: s
                                         name="diploma"
                                         placeholder="Ex: Mastère"
                                         defaultValue={teacher.diploma || ""}
+                                        disabled={isReadOnly}
                                         className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm"
                                     />
                                 </div>
@@ -270,6 +291,7 @@ export default function TeacherDetailsPage({ params }: { params: Promise<{ id: s
                                 <select
                                     name="gender"
                                     defaultValue={teacher.gender || "m"}
+                                    disabled={isReadOnly}
                                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm">
                                     <option value="m">Masculin</option>
                                     <option value="f">Féminin</option>
@@ -278,7 +300,7 @@ export default function TeacherDetailsPage({ params }: { params: Promise<{ id: s
                         </div>
                     </div>
 
-                    <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                    {!isReadOnly && <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
                         <div className="flex items-center justify-between mb-6">
                             <h3 className="font-bold text-slate-900 flex items-center gap-2">
                                 <User className="w-5 h-5 text-indigo-500" />
@@ -311,9 +333,9 @@ export default function TeacherDetailsPage({ params }: { params: Promise<{ id: s
                                 </button>
                             </div>
                         </div>
-                    </div>
+                    </div>}
 
-                    <div className="flex items-center justify-end gap-4">
+                    {!isReadOnly && <div className="flex items-center justify-end gap-4">
                         <button
                             type="button"
                             onClick={() => router.back()}
@@ -333,7 +355,7 @@ export default function TeacherDetailsPage({ params }: { params: Promise<{ id: s
                                 </>
                             )}
                         </button>
-                    </div>
+                    </div>}
                 </div>
             </form>
 

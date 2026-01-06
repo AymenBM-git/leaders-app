@@ -161,7 +161,7 @@ export default function NewTeacherPage() {
                                     <input
                                         type="text"
                                         name="iuense"
-                                        placeholder="Ex: ENS001"
+                                        placeholder="Ex: 0012345678"
                                         className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm"
                                     />
                                 </div>

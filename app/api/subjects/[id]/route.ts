@@ -1,3 +1,4 @@
+import { cookies } from 'next/headers';
 import  prisma  from '../../../../lib/prisma';
 import { NextResponse } from 'next/server'
 
@@ -47,6 +48,16 @@ export async function PUT(
         },
     })
 
+    // 1. Log Activity
+            const cookiesStore = cookies();
+            const nameuser= String((await cookiesStore).get('user-name')?.value);
+            await prisma.activity.create({
+                data: {
+                    nameUser: nameuser,
+                    description: `a modifié la matière ${subject.name}.`,
+                }
+            });
+
     return NextResponse.json(subject)
 }
 
@@ -71,6 +82,16 @@ export async function DELETE(
             id: parseInt(id),
         },
     })
+
+    // 1. Log Activity
+        const cookiesStore = cookies();
+        const nameuser= String((await cookiesStore).get('user-name')?.value);
+        await prisma.activity.create({
+            data: {
+                nameUser: nameuser,
+                description: `a supprimé la matière ${subject.name}.`,
+            }
+        });
 
     return NextResponse.json(subject)
 }

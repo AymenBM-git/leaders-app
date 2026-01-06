@@ -1,12 +1,16 @@
-// Define database connection via the `DATABASE_URL` env var
-datasource db {
-  provider = "postgresql"
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
 }
 
-// Define custom output path for generated Prisma Client
-generator client {
-  provider = "prisma-client-js"
-  output   = "../app/generated/prisma"
+datasource db {
+  provider = "postgresql"
 }
 
 model User {
@@ -32,6 +36,7 @@ model Student {
   address   String?
   phone     String?
   gender    String?
+  payments  Payment[]
 }
 
 model Parent {
@@ -43,7 +48,6 @@ model Parent {
   childrenIds Student[]
   username    String?
   password    String?
-  payments    Payment[]
 }
 
 model Payment {
@@ -52,8 +56,8 @@ model Payment {
   paymentDate DateTime? @default(now())
   as          String?
   type        String?
-  parent      Parent?   @relation(fields: [parentId], references: [id])
-  parentId    Int?
+  student     Student?  @relation(fields: [studentId], references: [id])
+  studentId   Int?
 }
 
 model Teacher {
@@ -79,6 +83,7 @@ model Class {
   teachers  Teacher[]
   students  Student[]
   schedules Schedule[]
+  tafs      Taf[]
 }
 
 model Room {
@@ -96,6 +101,8 @@ model Schedule {
   day       String?
   start     String?
   duration  Int?
+  group     Boolean? @default(false)
+  week      String?  @default("all")
   subject   Subject? @relation(fields: [subjectId], references: [id])
   subjectId Int?
   roomId    Int?
@@ -112,4 +119,31 @@ model Subject {
   codematiere String?
   teachers    Teacher[]
   schedules   Schedule[]
+  tafs        Taf[]
+}
+
+model Taf {
+  id          Int       @id @default(autoincrement())
+  subjectId   Int?
+  subject     Subject?  @relation(fields: [subjectId], references: [id])
+  classId     Int?
+  class       Class?    @relation(fields: [classId], references: [id])
+  type        String?
+  dateTaf     DateTime?
+  description String?
+}
+
+model Event {
+  id          Int       @id @default(autoincrement())
+  name        String?
+  target      Int?
+  dateEvent   DateTime?
+  description String?
+}
+
+model Activity {
+  id           Int       @id @default(autoincrement())
+  nameUser     String?
+  dateActivity DateTime? @default(now())
+  description  String?
 }

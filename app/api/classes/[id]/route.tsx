@@ -1,3 +1,4 @@
+import { cookies } from 'next/headers';
 import  prisma  from '../../../../lib/prisma';
 import { NextResponse } from 'next/server'
 
@@ -29,6 +30,16 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
             //teacherId: json.teacherId ? Number(json.teacherId) : null,
         }
     })
+    // 1. Log Activity
+        const cookiesStore = cookies();
+        const name= String((await cookiesStore).get('user-name')?.value);
+        const namecl = (updatedClass.level === "1") ? "السابعة أساسي " + updatedClass.name : (updatedClass.level === "2") ? "الثامنة أساسي " + updatedClass.name : (updatedClass.level === "3") ? "التاسعة أساسي " + updatedClass.name : ""
+        await prisma.activity.create({
+            data: {
+                nameUser: name,
+                description: `a modifié la classe ${namecl}`,
+            }
+        });
     return NextResponse.json(updatedClass)
 }
 
@@ -39,5 +50,15 @@ export async function DELETE(request: Request, props: { params: Promise<{ id: st
             id: Number(params.id)
         }
     })
+    // 1. Log Activity
+            const cookiesStore = cookies();
+            const name= String((await cookiesStore).get('user-name')?.value);
+            const namecl = (deletedClass.level === "1") ? "السابعة أساسي " + deletedClass.name : (deletedClass.level === "2") ? "الثامنة أساسي " + deletedClass.name : (deletedClass.level === "3") ? "التاسعة أساسي " + deletedClass.name : ""
+            await prisma.activity.create({
+                data: {
+                    nameUser: name,
+                    description: `a supprimé la classe ${namecl}`,
+                }
+            });
     return NextResponse.json(deletedClass)
 }

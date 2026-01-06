@@ -2,6 +2,7 @@ import  prisma  from '../../../lib/prisma';
 import { NextResponse } from 'next/server'
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
+import { cookies } from 'next/headers';
 
 export async function GET() {
     const students = await prisma.student.findMany({
@@ -54,6 +55,28 @@ export async function POST(request: Request) {
                 gender: gender
             }
         })
+        
+        // 1. Log Activity
+        const cookiesStore = cookies();
+        const name= String((await cookiesStore).get('user-name')?.value);
+        /*const role= String((await cookiesStore).get('user-role')?.value);
+        if(role==="prof"){
+            const user= await prisma.user.findFirst({
+                where:{login:name}
+            });
+            if(user?.idTeach) {
+                const teacher= await prisma.teacher.findUnique({
+                    where:{id:user.idTeach}
+                });
+                name=teacher?.name? teacher.name : name;
+            }
+        }*/
+        await prisma.activity.create({
+            data: {
+                nameUser: name,
+                description: `a créé l'élève ${student.firstName} ${student.lastName}`,
+            }
+        });
 
         // 2. Handle File Upload if exists
         if (file && file.size > 0) {

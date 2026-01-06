@@ -27,6 +27,22 @@ export default function EditClassPage({ params }: { params: Promise<{ id: string
         fetchClass();
     }, [unwrappedParams.id]);
 
+    const getCookie = (name: string) => {
+        if (typeof document === "undefined") return null;
+
+        return document.cookie
+            .split("; ")
+            .find(row => row.startsWith(name + "="))
+            ?.split("=")[1] ?? null;
+        };
+
+    const [role, setRole] = useState('');
+
+    useEffect(() => {
+            setRole(getCookie("user-role") ?? "N/A");
+        }, []);
+    let isReadOnly = role !== 'admin';
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsLoading(true);
@@ -99,14 +115,14 @@ export default function EditClassPage({ params }: { params: Promise<{ id: string
                         <p className="text-slate-500 text-sm">Gérez les détails et voyez la liste des élèves.</p>
                     </div>
                 </div>
-                <button
+                {!isReadOnly && <button
                     onClick={handleDelete}
                     disabled={isDeleting}
                     className="px-4 py-2 rounded-xl bg-red-50 text-red-600 font-medium hover:bg-red-100 hover:text-red-700 transition-colors flex items-center gap-2 disabled:opacity-50"
                 >
                     {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                     Supprimer la classe
-                </button>
+                </button>}
             </div>
 
             <form onSubmit={handleSubmit} className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-6">
@@ -118,7 +134,12 @@ export default function EditClassPage({ params }: { params: Promise<{ id: string
                 <div className="space-y-4">
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-slate-700">Niveau</label>
-                        <select name="level" defaultValue={classe.level} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm">
+                        <select 
+                        name="level" 
+                        defaultValue={classe.level} 
+                        disabled={isReadOnly}
+                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
+                        >
                             <option value="1">السابعة أساسي</option>
                             <option value="2">الثامنة أساسي</option>
                             <option value="3">التاسعة أساسي</option>
@@ -130,6 +151,7 @@ export default function EditClassPage({ params }: { params: Promise<{ id: string
                             name="name"
                             type="text"
                             defaultValue={classe.name}
+                            readOnly={isReadOnly}
                             className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                         />
                     </div>
@@ -144,7 +166,7 @@ export default function EditClassPage({ params }: { params: Promise<{ id: string
                     >
                         Annuler
                     </button>
-                    <button
+                    {!isReadOnly && <button
                         type="submit"
                         disabled={isLoading}
                         className="px-6 py-2.5 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700 shadow-lg shadow-indigo-500/20 transition-all flex items-center gap-2 disabled:opacity-70"
@@ -161,6 +183,7 @@ export default function EditClassPage({ params }: { params: Promise<{ id: string
                             </>
                         )}
                     </button>
+                }
                 </div>
             </form>
 

@@ -5,9 +5,10 @@ import { ChevronLeft, Save, Trash2, Loader2, CreditCard } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-interface Parent {
+interface Student {
     id: number;
-    name: string;
+    firstName: string;
+    lastName: string;
 }
 const currentYear = (() => {
     const now = new Date();
@@ -20,7 +21,7 @@ export default function StudentDetailsPage({ params }: { params: Promise<{ id: s
     const unwrappedParams = use(params);
     const [isLoading, setIsLoading] = useState(false);
     const [payment, setPayment] = useState<any>();
-    const [parents, setParents] = useState<Parent[]>([]);
+    const [students, setStudents] = useState<Student[]>([]);
     const [anneeScolaires, setAnneeScolaires] = useState<string[]>([]);
 
     useEffect(() => {
@@ -29,20 +30,20 @@ export default function StudentDetailsPage({ params }: { params: Promise<{ id: s
             try {
                 setAnneeScolaires([currentYear]);
                 
-                const [paymentRes, parentsRes, asRes] = await Promise.all([
+                const [paymentRes, studentsRes, asRes] = await Promise.all([
                     fetch(`/api/payments/${unwrappedParams.id}`),
-                    fetch('/api/parents'),
+                    fetch('/api/students'),
                     fetch('/api/payments/as')
                 ]);
 
-                if (parentsRes.ok && paymentRes.ok && asRes.ok) {
+                if (studentsRes.ok && paymentRes.ok && asRes.ok) {
                     const [p, s, asData] = await Promise.all([
-                        parentsRes.json(),
+                        studentsRes.json(),
                         paymentRes.json(),
                         asRes.json()
                     ]);
                     setPayment(s);
-                    setParents(p);
+                    setStudents(p);
 
                     const yearsInDB = Array.from(new Set(asData.map((e: any) => e.as))).filter(Boolean) as string[];
                     const allYears = Array.from(new Set([currentYear, ...yearsInDB]))
@@ -71,7 +72,7 @@ export default function StudentDetailsPage({ params }: { params: Promise<{ id: s
         try {
             const res = await fetch(`/api/payments/${unwrappedParams.id}`, {
                 method: 'PUT',
-                body: JSON.stringify({ parentId: formData.get("parentId"), amount: formData.get("amount"),as: formData.get("as"), type: formData.get("type") }),
+                body: JSON.stringify({ studentId: formData.get("studentId"), amount: formData.get("amount"),as: formData.get("as"), type: formData.get("type") }),
             });
 
             if (res.ok) {
@@ -148,17 +149,17 @@ export default function StudentDetailsPage({ params }: { params: Promise<{ id: s
                         </h3>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {/* Parent */}
+                            {/* student */}
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-700">Parent</label>
+                                <label className="text-sm font-medium text-slate-700">Elève</label>
                                 <select
-                                    name="parentId"
-                                    defaultValue={payment?.parentId}
+                                    name="studentId"
+                                    defaultValue={payment?.studentId}
                                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                                 >
-                                    <option value="">Sélectionner un parent...</option>
-                                    {parents.map((p) => (
-                                        <option key={p.id} value={p.id}>{p.name}</option>
+                                    <option value="">Sélectionner un élève...</option>
+                                    {students.map((s) => (
+                                        <option key={s.id} value={s.id}>{s.firstName} {s.lastName}</option>
                                     ))}
                                 </select>
                             </div>

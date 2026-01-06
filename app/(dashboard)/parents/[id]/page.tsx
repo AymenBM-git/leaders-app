@@ -26,6 +26,22 @@ export default function ParentDetailsPage({ params }: { params: Promise<{ id: st
         fetchParent();
     }, [unwrappedParams.id]);
 
+    const getCookie = (name: string) => {
+        if (typeof document === "undefined") return null;
+
+        return document.cookie
+            .split("; ")
+            .find(row => row.startsWith(name + "="))
+            ?.split("=")[1] ?? null;
+        };
+
+    const [role, setRole] = useState('');
+
+    useEffect(() => {
+            setRole(getCookie("user-role") ?? "N/A");
+        }, []);
+    let isReadOnly = role !== 'admin';
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsLoading(true);
@@ -37,8 +53,14 @@ export default function ParentDetailsPage({ params }: { params: Promise<{ id: st
             phone: formData.get("phone"),
             username: formData.get("username"),
             // Only send password if provided
-            password: formData.get("password") || undefined
+            password: formData.get("password") || undefined,
+            confirmPassword: formData.get("confirmPassword") || undefined
         };
+        if(data.password !== data.confirmPassword) {
+            alert("Les mots de passe ne correspondent pas.");
+            setIsLoading(false);
+            return;
+        }
 
         try {
             const res = await fetch(`/api/parents/${unwrappedParams.id}`, {
@@ -87,7 +109,7 @@ export default function ParentDetailsPage({ params }: { params: Promise<{ id: st
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                     <Link
-                        href="/parents"
+                        href={isReadOnly ? "/students" : "/parents"}
                         className="p-2 rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors text-slate-500 hover:text-slate-700"
                     >
                         <ChevronLeft className="w-5 h-5" />
@@ -97,17 +119,17 @@ export default function ParentDetailsPage({ params }: { params: Promise<{ id: st
                         <p className="text-slate-500 text-sm">ID: {parent.id}</p>
                     </div>
                 </div>
-                <button
+                {!isReadOnly && <button
                     onClick={handleDelete}
                     disabled={isDeleting}
                     className="px-4 py-2 rounded-xl bg-red-50 text-red-600 font-medium hover:bg-red-100 hover:text-red-700 transition-colors flex items-center gap-2 disabled:opacity-50"
                 >
                     {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                     Supprimer
-                </button>
+                </button>}
             </div>
 
-            <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <form onSubmit={handleSubmit} className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-6">
                 <div className="lg:col-span-2 space-y-6">
                     <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
                         <h3 className="font-bold text-slate-900 mb-6 flex items-center gap-2">
@@ -122,8 +144,21 @@ export default function ParentDetailsPage({ params }: { params: Promise<{ id: st
                                     name="name"
                                     type="text"
                                     defaultValue={parent.name}
+                                    readOnly={isReadOnly}
                                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 transition-all text-sm"
                                 />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-slate-700">Relation</label>
+                                <select 
+                                    name="relation" 
+                                    defaultValue={parent.relation}
+                                    disabled={isReadOnly}
+                                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 transition-all text-sm">
+                                    <option value="father">Père</option>
+                                    <option value="mother">Mère</option>
+                                    <option value="guardian">Tuteur Légal</option>
+                                </select>
                             </div>
                         </div>
 
@@ -136,6 +171,7 @@ export default function ParentDetailsPage({ params }: { params: Promise<{ id: st
                                         name="email"
                                         type="email"
                                         defaultValue={parent.email}
+                                        readOnly={isReadOnly}
                                         className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 transition-all text-sm"
                                     />
                                 </div>
@@ -148,6 +184,7 @@ export default function ParentDetailsPage({ params }: { params: Promise<{ id: st
                                         name="phone"
                                         type="tel"
                                         defaultValue={parent.phone}
+                                        readOnly={isReadOnly}
                                         className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 transition-all text-sm"
                                     />
                                 </div>
@@ -155,7 +192,7 @@ export default function ParentDetailsPage({ params }: { params: Promise<{ id: st
                         </div>
                     </div>
 
-                    <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                    {!isReadOnly && <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
                         <div className="flex items-center justify-between mb-6">
                             <h3 className="font-bold text-slate-900 flex items-center gap-2">
                                 <User className="w-5 h-5 text-indigo-500" />
@@ -170,7 +207,7 @@ export default function ParentDetailsPage({ params }: { params: Promise<{ id: st
                                     name="username"
                                     type="text"
                                     defaultValue={parent.username}
-                                    
+                                    readOnly={isReadOnly}
                                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                                 />
                             </div>
@@ -181,20 +218,39 @@ export default function ParentDetailsPage({ params }: { params: Promise<{ id: st
                                     <input
                                         name="password"
                                         type="password"
+                                        readOnly={isReadOnly}
+                                        placeholder="Laisser vide pour ne pas changer"
+                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-slate-700">Retaper le mot de passe</label>
+                                    <input
+                                        name="confirmPassword"
+                                        type="password"
+                                        readOnly={isReadOnly}
                                         placeholder="Laisser vide pour ne pas changer"
                                         className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                                     />
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div>}
                 </div>
 
-                <div className="lg:col-span-1 space-y-6">
+                {!isReadOnly && <div className="pt-4 flex justify-end gap-3 border-t border-slate-100 mt-6">
+                    <button
+                        type="button"
+                        onClick={() => router.back()}
+                        className="px-6 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-medium hover:bg-slate-50 transition-colors"
+                    >
+                        Annuler
+                    </button>
+                    
                     <button
                         type="submit"
                         disabled={isLoading}
-                        className="w-full py-3 rounded-xl bg-pink-600 text-white font-bold hover:bg-pink-700 shadow-lg shadow-pink-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-70"
+                        className="px-6 py-2.5 rounded-xl bg-pink-600 text-white font-bold hover:bg-pink-700 shadow-lg shadow-pink-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-70"
                     >
                         {isLoading ? (
                             <>
@@ -208,7 +264,7 @@ export default function ParentDetailsPage({ params }: { params: Promise<{ id: st
                             </>
                         )}
                     </button>
-                </div>
+                </div>}
             </form>
         </div>
     );

@@ -14,9 +14,9 @@ export async function GET(request: Request) {
             prisma.student.findMany({
                 where: {
                     OR: [
-                        { firstName: { contains: query, mode: 'insensitive' } },
-                        { lastName: { contains: query, mode: 'insensitive' } },
-                        { idenelev: { contains: query, mode: 'insensitive' } },
+                        { firstName: { contains: query ,mode: 'insensitive'} },
+                        { lastName: { contains: query ,mode: 'insensitive' } },
+                        { idenelev: { contains: query ,mode: 'insensitive' } },
                     ],
                 },
                 take: 5,
@@ -25,8 +25,8 @@ export async function GET(request: Request) {
             prisma.teacher.findMany({
                 where: {
                     OR: [
-                        { name: { contains: query, mode: 'insensitive' } },
-                        { email: { contains: query, mode: 'insensitive' } },
+                        { name: { contains: query ,mode: 'insensitive'} },
+                        { email: { contains: query ,mode: 'insensitive' } },
                     ],
                 },
                 take: 5,
@@ -35,9 +35,9 @@ export async function GET(request: Request) {
             prisma.parent.findMany({
                 where: {
                     OR: [
-                        { name: { contains: query, mode: 'insensitive' } },
-                        { phone: { contains: query, mode: 'insensitive' } },
-                        { username: { contains: query, mode: 'insensitive' } },
+                        { name: { contains: query ,mode: 'insensitive'} },
+                        { phone: { contains: query ,mode: 'insensitive' } },
+                        { username: { contains: query ,mode: 'insensitive' } },
                     ],
                 },
                 take: 5,

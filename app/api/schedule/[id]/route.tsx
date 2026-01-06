@@ -1,4 +1,4 @@
-import  prisma  from '../../../../lib/prisma';
+import prisma from '../../../../lib/prisma';
 import { NextResponse } from 'next/server'
 
 export async function GET(request: Request, props: { params: Promise<{ id: string }> }) {
@@ -33,6 +33,8 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
             roomId: json.roomId ? Number(json.roomId) : null,
             classId: json.classId ? Number(json.classId) : null,
             teacherId: json.teacherId ? Number(json.teacherId) : null,
+            group: json.group === true,
+            week: json.week || "all",
         }
     })
     return NextResponse.json(scheduleItem)

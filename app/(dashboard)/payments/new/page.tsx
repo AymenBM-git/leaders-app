@@ -5,9 +5,10 @@ import { ChevronLeft, Save, CreditCard } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-interface Parent {
+interface Student {
     id: number;
-    name: string;
+    firstName: string;
+    lastName: string;
 }
 
 const currentYear = (() => {
@@ -19,8 +20,7 @@ const currentYear = (() => {
 export default function NewStudentPage() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
-    const [asCourant, setAsCourant] = useState<string>(currentYear);
-    const [parents, setParents] = useState<Parent[]>([]);
+    const [students, setStudents] = useState<Student[]>([]);
     const [anneeScolaires, setAnneeScolaires] = useState<string[]>([]);
 
     useEffect(() => {
@@ -29,14 +29,14 @@ export default function NewStudentPage() {
 
                 setAnneeScolaires([currentYear]);
 
-                const [parentsRes,asRes] = await Promise.all([
-                    fetch('/api/parents'),
+                const [studentsRes,asRes] = await Promise.all([
+                    fetch('/api/students'),
                     fetch('/api/payments/as'),
                 ]);
 
-                if (parentsRes.ok && asRes.ok) {
-                    const parentsData = await parentsRes.json();
-                    setParents(parentsData);
+                if (studentsRes.ok && asRes.ok) {
+                    const studentsData = await studentsRes.json();
+                    setStudents(studentsData);
 
                     const asData = await asRes.json();
                     const yearsInDB = Array.from(new Set(asData.map((e: any) => e.as))).filter(Boolean) as string[];
@@ -60,7 +60,7 @@ export default function NewStudentPage() {
         try {
             const res = await fetch("/api/payments", {
                 method: "POST",
-                body: JSON.stringify({ parentId: formData.get("parentId"), amount: formData.get("amount"),as: formData.get("as"), type: formData.get("type") }),
+                body: JSON.stringify({ studentId: formData.get("studentId"), amount: formData.get("amount"),as: formData.get("as"), type: formData.get("type") }),
             });
 
             if (!res.ok) throw new Error("Erreur lors de la création");
@@ -104,14 +104,14 @@ export default function NewStudentPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {/* Parent */}
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-700">Parent</label>
+                                <label className="text-sm font-medium text-slate-700">Elève</label>
                                 <select
-                                    name="parentId"
+                                    name="studentId"
                                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                                 >
-                                    <option value="">Sélectionner un parent...</option>
-                                    {parents.map((p) => (
-                                        <option key={p.id} value={p.id}>{p.name}</option>
+                                    <option value="">Sélectionner un élève...</option>
+                                    {students.map((s) => (
+                                        <option key={s.id} value={s.id}>{s.firstName} {s.lastName}</option>
                                     ))}
                                 </select>
                             </div>
@@ -136,21 +136,6 @@ export default function NewStudentPage() {
                                         anneeScolaires.map((as, index) => <option key={index} value={as}>{as}</option>)
                                     }
                                 </select>
-                                {/*<input
-                                    type="text"
-                                    name="as"
-                                    list="anneeScolaires"
-                                    placeholder="Ex: 2025/2026"
-                                    value={asCourant}
-                                    onChange={(e) => setAsCourant(e.target.value)}
-                                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
-                                    required
-                                />
-                                <datalist id="anneeScolaires">
-                                    {
-                                        anneeScolaires.map((as, index) => <option key={index} value={as}>{as}</option>)
-                                    }
-                                </datalist>*/}
                             </div>
                             {/* Type */}
                             <div className="space-y-2">

@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
+import { cookies } from 'next/headers';
 
 export async function GET() {
     const teachers = await prisma.teacher.findMany({
@@ -63,6 +64,16 @@ export async function POST(request: Request) {
             user: true,
         },
     })
+
+    // 1. Log Activity
+        const cookiesStore = cookies();
+        const nameuser= String((await cookiesStore).get('user-name')?.value);
+        await prisma.activity.create({
+            data: {
+                nameUser: nameuser,
+                description: `a créé le professeur: ${teacher.name}.`,
+            }
+        });
 
     // 2. Handle File Upload if exists
     if (file && file.size > 0) {

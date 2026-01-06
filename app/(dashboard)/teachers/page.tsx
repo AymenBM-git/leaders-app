@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Plus, Mail, Phone, BookOpen, MoreHorizontal, LayoutGrid, List, Loader2 } from "lucide-react";
+import { Search, Plus, Mail, Phone, BookOpen, MoreHorizontal, LayoutGrid, Filter, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
@@ -15,6 +15,8 @@ export default function TeachersPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
     const [teachers, setTeachers] = useState<any[]>([]);
+    const [subjects, setSubjects] = useState<any[]>([]);
+    const [selectedSubject, setSelectedSubject] = useState<string>("");
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -24,6 +26,11 @@ export default function TeachersPage() {
     const fetchTeachers = async () => {
         try {
             const res = await fetch('/api/teachers');
+            const resSubjects = await fetch('/api/subjects');
+            if (resSubjects.ok) {
+                const dataSubjects = await resSubjects.json();
+                setSubjects(dataSubjects);
+            }
             if (res.ok) {
                 const data = await res.json();
                 setTeachers(data);
@@ -35,9 +42,26 @@ export default function TeachersPage() {
         }
     };
 
+    const getCookie = (name: string) => {
+        if (typeof document === "undefined") return null;
+
+        return document.cookie
+            .split("; ")
+            .find(row => row.startsWith(name + "="))
+            ?.split("=")[1] ?? null;
+        };
+
+    const [role, setRole] = useState('');
+
+    useEffect(() => {
+            setRole(getCookie("user-role") ?? "N/A");
+        }, []);
+    let isReadOnly = role !== 'admin';
+
     const filteredTeachers = teachers.filter(teacher =>
-        (teacher.name || teacher.user?.login || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (teacher.subject?.name || "").toLowerCase().includes(searchTerm.toLowerCase())
+       ( (teacher.name || teacher.user?.login || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (teacher.subject?.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ) &&
+        (selectedSubject ? teacher.subjectId === Number(selectedSubject) : true)
     );
 
     if (isLoading) {
@@ -57,15 +81,16 @@ export default function TeachersPage() {
                         <h1 className="text-3xl font-bold text-slate-900">Enseignants</h1>
                         <p className="text-slate-500 mt-1">Gérez le corps professoral.</p>
                     </div>
-                    <Link href="/teachers/new" className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl font-medium shadow-lg shadow-emerald-500/20 flex items-center gap-2 transition-all active:scale-95">
+                    {!isReadOnly && <Link href="/teachers/new" className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl font-medium shadow-lg shadow-emerald-500/20 flex items-center gap-2 transition-all active:scale-95">
                         <Plus className="w-5 h-5" />
                         Ajouter Enseignant
-                    </Link>
+                    </Link>}
                 </div>
 
-                {/* Controls */}
+                {/* Filters */}
                 <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-                    <div className="relative w-full md:max-w-md">
+                    {/* Search Bar Name teacher*/}
+                    <div className="relative w-full flex-1">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                         <input
                             type="text"
@@ -75,6 +100,24 @@ export default function TeachersPage() {
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
+                    {/* Matiere */}
+                <div className="flex gap-2 w-full md:w-auto">
+                    <div className="relative">
+                    <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4" />
+                    <select
+                        value={selectedSubject}
+                        name="subject"
+                        onChange={(e) => setSelectedSubject(e.target.value)}
+                        className="appearance-none pl-10 pr-8 py-2 bg-slate-50 text-slate-600 rounded-xl font-medium hover:bg-slate-100 border border-slate-200/50 outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer"
+                    >
+                        <option value="">Toutes les matières</option>
+
+                        {
+                            subjects.map(subject => <option key={subject.id} value={subject.id}>{subject.name}</option>)
+                        }
+                    </select>
+                    </div>
+                </div>
                 </div>
 
                 {/* Grid View */}

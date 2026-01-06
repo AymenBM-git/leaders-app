@@ -1,5 +1,6 @@
 import  prisma  from '../../../../lib/prisma';
 import { mkdir, writeFile } from 'fs/promises';
+import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import path from 'path';
 
@@ -65,6 +66,16 @@ export async function PUT(
         }
     })
 
+    // 1. Log Activity
+        const cookiesStore = cookies();
+        const name= String((await cookiesStore).get('user-name')?.value);
+        await prisma.activity.create({
+            data: {
+                nameUser: name,
+                description: `a modifié l'élève ${student.firstName} ${student.lastName}`,
+            }
+        });
+
     // 2. Handle File Upload if exists
     if (file && file.size > 0) {
         const buffer = Buffer.from(await file.arrayBuffer());
@@ -95,10 +106,22 @@ export async function PUT(
 
 export async function DELETE(request: Request, props: { params: Promise<{ id: string }> }) {
     const params = await props.params;
+
     const student = await prisma.student.delete({
         where: {
             id: Number(params.id)
         }
     })
+
+    // 1. Log Activity
+        const cookiesStore = cookies();
+        const name= String((await cookiesStore).get('user-name')?.value);
+        await prisma.activity.create({
+            data: {
+                nameUser: name,
+                description: `a supprimé l'élève ${student.firstName} ${student.lastName}`,
+            }
+        });
+
     return NextResponse.json(student)
 }

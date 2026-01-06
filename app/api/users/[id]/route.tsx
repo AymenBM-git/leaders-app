@@ -1,6 +1,7 @@
 import  prisma  from '../../../../lib/prisma';
 import { NextResponse } from 'next/server'
-
+import bcrypt from 'bcryptjs';
+import { cookies } from 'next/headers';
 
 export async function GET(request: Request, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -11,8 +12,6 @@ export async function GET(request: Request, props: { params: Promise<{ id: strin
   })
   return NextResponse.json(user)
 }
-
-import bcrypt from 'bcryptjs';
 
 export async function PUT(request: Request, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -33,6 +32,16 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
     },
     data: dataToUpdate
   })
+
+  // 1. Log Activity
+      const cookiesStore = cookies();
+      const nameuser= String((await cookiesStore).get('user-name')?.value);
+      await prisma.activity.create({
+          data: {
+              nameUser: nameuser,
+              description: `a modifié l'utilisateur: ${user.login}.`,
+          }
+      });
   return NextResponse.json(user)
 }
 
@@ -43,5 +52,14 @@ export async function DELETE(request: Request, props: { params: Promise<{ id: st
       login: params.id
     }
   })
+  // 1. Log Activity
+    const cookiesStore = cookies();
+    const nameuser= String((await cookiesStore).get('user-name')?.value);
+    await prisma.activity.create({
+        data: {
+            nameUser: nameuser,
+            description: `a supprimé l'utilisateur: ${user.login}.`,
+        }
+    });
   return NextResponse.json(user)
 }

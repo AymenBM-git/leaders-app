@@ -80,7 +80,7 @@ export default function ParentsPage() {
 
             {/* Search */}
             <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-                <div className="relative w-full md:max-w-md">
+                <div className="relative flex-1 w-full">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                     <input
                         type="text"

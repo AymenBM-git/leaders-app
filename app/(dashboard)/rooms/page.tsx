@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Plus, MapPin, Users, MoreVertical, LayoutGrid, List as ListIcon, Loader2 } from "lucide-react";
+import { Search, Plus, MapPin, Users, MoreVertical, LayoutGrid, List as ListIcon, Loader2, Eye } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
@@ -28,6 +28,22 @@ export default function RoomsPage() {
             setIsLoading(false);
         }
     };
+
+    const getCookie = (name: string) => {
+        if (typeof document === "undefined") return null;
+
+        return document.cookie
+            .split("; ")
+            .find(row => row.startsWith(name + "="))
+            ?.split("=")[1] ?? null;
+        };
+
+    const [role, setRole] = useState('');
+
+    useEffect(() => {
+            setRole(getCookie("user-role") ?? "N/A");
+        }, []);
+    let isReadOnly = role !== 'admin';
 
     const filteredRooms = rooms.filter(room =>
         (room.name || "").toLowerCase().includes(searchTerm.toLowerCase())
@@ -58,10 +74,10 @@ export default function RoomsPage() {
                     <h1 className="text-3xl font-bold text-slate-900">Salles</h1>
                     <p className="text-slate-500 mt-1">Gestion des salles de classe et laboratoires.</p>
                 </div>
-                <Link href="/rooms/new" className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl font-medium shadow-lg shadow-indigo-500/20 flex items-center gap-2 transition-all active:scale-95">
+                {!isReadOnly && <Link href="/rooms/new" className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl font-medium shadow-lg shadow-indigo-500/20 flex items-center gap-2 transition-all active:scale-95">
                     <Plus className="w-5 h-5" />
                     Nouvelle Salle
-                </Link>
+                </Link>}
             </div>
 
             {/* Controls */}
@@ -158,9 +174,11 @@ export default function RoomsPage() {
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 text-right">
-                                        <button className="p-2 text-slate-400 hover:text-indigo-600 transition-colors">
-                                            <MoreVertical className="w-5 h-5" />
-                                        </button>
+                                        <div className="flex items-center justify-end gap-2">
+                                            <Link href={`/rooms/${room.id}`} className="text-slate-500 hover:text-indigo-600 transition-colors">
+                                                <Eye className="w-5 h-5" />
+                                            </Link>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}

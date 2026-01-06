@@ -49,11 +49,13 @@ export default function NewClassPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-6">
+                {/* Class Details Section */ }
                 <div className="flex items-center gap-2 mb-2 text-indigo-600">
                     <School className="w-5 h-5" />
                     <h3 className="font-bold text-lg">Détails de la Classe</h3>
                 </div>
                 <div className="mt-6 space-y-3">
+                    {/* Level  */ }
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-slate-700">Niveau</label>
                         <select name="level" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm">
@@ -62,9 +64,8 @@ export default function NewClassPage() {
                             <option value="2">الثامنة أساسي</option>
                             <option value="3">التاسعة أساسي</option>
                         </select>
-
                     </div>
-
+                    {/* Class Name  */ }
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-slate-700">Nom de la Classe</label>
                         <input
@@ -74,8 +75,6 @@ export default function NewClassPage() {
                             className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                         />
                     </div>
-
-
                 </div>
 
                 <div className="pt-4 flex justify-end gap-3 border-t border-slate-100 mt-6">

@@ -1,3 +1,4 @@
+import { cookies } from 'next/headers';
 import prisma from '../../../../lib/prisma';
 import { NextResponse } from 'next/server'
 
@@ -8,7 +9,7 @@ export async function GET(request: Request, props: { params: Promise<{ id: strin
             id: Number(params.id)
         },
         include: {
-            parent: true
+            student: true
         }
     })
     return NextResponse.json(payment)
@@ -22,12 +23,23 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
             id: Number(params.id)
         },
         data: {
-            amount: json.amount,
+            amount: Number(json.amount),
             as: json.as,
             type: json.type,
-            parentId: json.parentId
+            studentId: Number(json.studentId)||null,
         }
     })
+
+    // 1. Log Activity
+                const cookiesStore = cookies();
+                const nameuser= String((await cookiesStore).get('user-name')?.value);
+                await prisma.activity.create({
+                    data: {
+                        nameUser: nameuser,
+                        description: `a modifié un payment de ${payment.amount} DT pour l'année scolaire ${payment.as}.`,
+                    }
+                });
+                
     return NextResponse.json(payment)
 }
 
@@ -38,5 +50,15 @@ export async function DELETE(request: Request, props: { params: Promise<{ id: st
             id: Number(params.id)
         }
     })
+
+    // 1. Log Activity
+            const cookiesStore = cookies();
+            const nameuser= String((await cookiesStore).get('user-name')?.value);
+            await prisma.activity.create({
+                data: {
+                    nameUser: nameuser,
+                    description: `a supprimé un payment de ${payment.amount} DT pour l'année scolaire ${payment.as}.`,
+                }
+            });
     return NextResponse.json(payment)
 }

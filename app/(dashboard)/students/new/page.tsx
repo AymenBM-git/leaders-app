@@ -4,6 +4,14 @@ import { useState, useEffect } from "react";
 import { ChevronLeft, Save, Upload, User, Calendar, Mail, Phone, MapPin } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
+import ParentForm from "@/components/forms/ParentForm";
 
 interface Parent {
     id: number;
@@ -21,19 +29,30 @@ export default function NewStudentPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [parents, setParents] = useState<Parent[]>([]);
     const [classes, setClasses] = useState<Class[]>([]);
+    const [isParentModalOpen, setIsParentModalOpen] = useState(false);
+    const [selectedParentId, setSelectedParentId] = useState<string>("");
+
+    const fetchParents = async () => {
+        try {
+            const res = await fetch('/api/parents');
+            if (res.ok) {
+                const data = await res.json();
+                setParents(data);
+                return data;
+            }
+        } catch (error) {
+            console.error("Error fetching parents:", error);
+        }
+    };
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [parentsRes, classesRes] = await Promise.all([
-                    fetch('/api/parents'),
+                const [parentsData, classesRes] = await Promise.all([
+                    fetchParents(),
                     fetch('/api/classes')
                 ]);
 
-                if (parentsRes.ok) {
-                    const parentsData = await parentsRes.json();
-                    setParents(parentsData);
-                }
                 if (classesRes.ok) {
                     const classesData = await classesRes.json();
                     setClasses(classesData);
@@ -45,17 +64,17 @@ export default function NewStudentPage() {
         fetchData();
     }, []);
 
+    const handleParentSuccess = async (newParent: { id: number; name: string }) => {
+        await fetchParents();
+        setSelectedParentId(newParent.id.toString());
+        setIsParentModalOpen(false);
+    };
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsLoading(true);
 
         const formData = new FormData(e.currentTarget);
-
-        /* Combine First and Last Name
-        const firstName = formData.get("firstName")?.toString() || "";
-        const lastName = formData.get("lastName")?.toString() || "";
-        const fullName = `${firstName} ${lastName}`.trim();
-        formData.append("name", fullName);*/
 
         try {
             const res = await fetch("/api/students", {
@@ -130,6 +149,8 @@ export default function NewStudentPage() {
                                 <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
                                 <select
                                     name="parentId"
+                                    value={selectedParentId}
+                                    onChange={(e) => setSelectedParentId(e.target.value)}
                                     className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                                 >
                                     <option value="">Sélectionner un parent...</option>
@@ -139,9 +160,13 @@ export default function NewStudentPage() {
                                 </select>
                             </div>
                             <div className="text-right">
-                                <Link href="/parents/new" className="text-xs text-indigo-600 font-medium hover:underline">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsParentModalOpen(true)}
+                                    className="text-xs text-indigo-600 font-medium hover:underline"
+                                >
                                     + Créer un nouveau parent
-                                </Link>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -258,6 +283,18 @@ export default function NewStudentPage() {
                     </div>
                 </div>
             </form>
+
+            <Dialog open={isParentModalOpen} onOpenChange={setIsParentModalOpen}>
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>Nouveau Parent</DialogTitle>
+                    </DialogHeader>
+                    <ParentForm
+                        onSuccess={handleParentSuccess}
+                        onCancel={() => setIsParentModalOpen(false)}
+                    />
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

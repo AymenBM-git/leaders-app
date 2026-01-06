@@ -1,6 +1,7 @@
 import  prisma  from '../../../../lib/prisma';
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
+import { id } from 'date-fns/locale';
 
 export async function POST(request: Request) {
     try {
@@ -64,7 +65,8 @@ export async function POST(request: Request) {
         return NextResponse.json({
             login: user.login,
             role: user.role,
-            displayName: displayName
+            displayName: displayName,
+            id: user.idTeach?user.idTeach:0
         });
 
     } catch (error) {

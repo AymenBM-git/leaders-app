@@ -44,6 +44,7 @@ export default function LoginPage() {
             document.cookie = `auth-token=authenticated; path=/; max-age=${60 * 60 * 24}; SameSite=Lax`;
             document.cookie = `user-name=${encodeURIComponent(userData.displayName)}; path=/; max-age=${60 * 60 * 24}; SameSite=Lax`;
             document.cookie = `user-role=${userData.role}; path=/; max-age=${60 * 60 * 24}; SameSite=Lax`;
+            document.cookie = `user-id=${userData.id}; path=/; max-age=${60 * 60 * 24}; SameSite=Lax`;
 
             router.push("/dashboard");
         } catch (err: any) {
@@ -142,6 +143,7 @@ export default function LoginPage() {
                         onSubmit={handleLogin}
                         className="space-y-5"
                     >
+                        {/* Login Input */}
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-slate-900">Identifiant</label>
                             <input
@@ -154,6 +156,7 @@ export default function LoginPage() {
                             />
                         </div>
 
+                        {/* Password Input */}
                         <div className="space-y-2">
                             <div className="flex items-center justify-between">
                                 <label className="text-sm font-medium text-slate-900">Mot de passe</label>
@@ -169,6 +172,7 @@ export default function LoginPage() {
                             />
                         </div>
 
+                        {/* Submit Button */}
                         <button
                             type="submit"
                             disabled={isLoading || !role}

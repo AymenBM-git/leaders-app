@@ -1,3 +1,4 @@
+import { cookies } from 'next/headers';
 import  prisma  from '../../../../lib/prisma';
 import { NextResponse } from 'next/server'
 
@@ -28,6 +29,17 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
             phone: json.phone
         }
     })
+
+    // 1. Log Activity
+        const cookiesStore = cookies();
+        const nameuser= String((await cookiesStore).get('user-name')?.value);
+        await prisma.activity.create({
+            data: {
+                nameUser: nameuser,
+                description: `a modifié le parent ${parent.name}`,
+            }
+        });
+                
     return NextResponse.json(parent)
 }
 
@@ -38,5 +50,16 @@ export async function DELETE(request: Request, props: { params: Promise<{ id: st
             id: Number(params.id)
         }
     })
+
+    // 1. Log Activity
+        const cookiesStore = cookies();
+        const nameuser= String((await cookiesStore).get('user-name')?.value);
+        await prisma.activity.create({
+            data: {
+                nameUser: nameuser,
+                description: `a supprimé le parent ${parent.name}`,
+            }
+        });
+
     return NextResponse.json(parent)
 }

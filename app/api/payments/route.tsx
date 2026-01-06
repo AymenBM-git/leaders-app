@@ -1,3 +1,4 @@
+import { cookies } from 'next/headers';
 import prisma from '../../../lib/prisma';
 import { NextResponse } from 'next/server'
 
@@ -13,13 +14,13 @@ export async function GET(req: Request) {
         const whereClause: any = {};
 
         if (p !== "all") {
-        whereClause.parentId = Number(p)
+        whereClause.studentId = Number(p)
         }
         if (as !== "all") {
         whereClause.as = as
         }
         const total = await prisma.payment.groupBy({
-            by: ['parentId','as'],
+            by: ['studentId','as'],
             _sum: {
             amount: true,
             },
@@ -31,7 +32,7 @@ export async function GET(req: Request) {
     }
         const payments = await prisma.payment.findMany({
             include: {
-                parent: true
+                student: true
             }
         })
         return NextResponse.json(payments)
@@ -45,16 +46,27 @@ export async function POST(request: Request) {
     try {
         const json = await request.json()//.formData()
 
-        const { amount, type, parentId,as } = json
+        const { amount, type, studentId,as } = json
 
         const payment = await prisma.payment.create({
             data: {
                 amount:Number(amount),
                 type,
-                parentId:Number(parentId)||null,
+                studentId:Number(studentId)||null,
                 as
             }
         })
+
+        // 1. Log Activity
+            const cookiesStore = cookies();
+            const nameuser= String((await cookiesStore).get('user-name')?.value);
+            await prisma.activity.create({
+                data: {
+                    nameUser: nameuser,
+                    description: `a créé un payment de ${payment.amount} DT pour l'année scolaire ${payment.as}.`,
+                }
+            });
+                
         return NextResponse.json(payment)
     } catch (error) {
         console.error("Error creating payment:", error)
