@@ -16,16 +16,20 @@ export async function POST(request: Request) {
     try {
         const json = await request.json()
 
-        const { name, relation, email, phone, username, password } = json
+        const { name1, relation1, email1, phone1, name2, relation2, email2, phone2, username, password } = json
 
         const hashedPassword = password ? await bcrypt.hash(password, 10) : null
 
         const parent = await prisma.parent.create({
             data: {
-                name,
-                relation,
-                email,
-                phone,
+                name1,
+                relation1,
+                email1,
+                phone1,
+                name2,
+                relation2,
+                email2,
+                phone2,
                 username,
                 password: hashedPassword,
             }
@@ -37,7 +41,7 @@ export async function POST(request: Request) {
             await prisma.activity.create({
                 data: {
                     nameUser: nameuser,
-                    description: `a créé le parent ${parent.name}`,
+                    description: `a créé le parent ${parent.name1}`,
                 }
             });
             

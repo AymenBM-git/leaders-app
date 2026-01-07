@@ -114,11 +114,11 @@ export default function ParentsPage() {
                                 <div className="flex items-start justify-between">
                                     <div className="flex items-center gap-4">
                                         <div className="w-12 h-12 rounded-full bg-pink-50 flex items-center justify-center text-pink-600 font-bold text-xl">
-                                            {parent.name ? parent.name.charAt(0) : "P"}
+                                            {parent.name1 ? parent.name1.charAt(0) : "P"}
                                         </div>
                                         <div>
                                             <Link href={`/parents/${parent.id}`} className="font-bold text-slate-800 text-lg hover:text-pink-600 transition-colors">
-                                                {parent.name}
+                                                {parent.name1}
                                             </Link>
                                             <p className="text-slate-400 text-sm">Parent de {children.length} élève{children.length > 1 ? 's' : ''}</p>
                                         </div>
@@ -130,13 +130,13 @@ export default function ParentsPage() {
                                         <div className="p-2 rounded-lg bg-slate-50 group-hover:bg-slate-100 transition-colors">
                                             <Mail className="w-4 h-4" />
                                         </div>
-                                        <span>{parent.email}</span>
+                                        <span>{parent.email1}</span>
                                     </div>
                                     <div className="flex items-center gap-3 text-slate-600 text-sm">
                                         <div className="p-2 rounded-lg bg-slate-50 group-hover:bg-slate-100 transition-colors">
                                             <Phone className="w-4 h-4" />
                                         </div>
-                                        <span>{parent.phone}</span>
+                                        <span>{parent.phone1}</span>
                                     </div>
                                 </div>
                             </div>

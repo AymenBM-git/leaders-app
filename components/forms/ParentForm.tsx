@@ -18,6 +18,11 @@ export default function ParentForm({ onSuccess, onCancel }: ParentFormProps) {
         const formData = new FormData(e.currentTarget);
         const data = Object.fromEntries(formData.entries());
 
+        if (data.relation1 === data.relation2) {
+            alert("Les relations doivent être différentes.");
+            setIsLoading(false);
+            return;
+        }
         if (data.password !== data.confirmPassword) {
             alert("Les mots de passe ne correspondent pas.");
             setIsLoading(false);
@@ -49,10 +54,11 @@ export default function ParentForm({ onSuccess, onCancel }: ParentFormProps) {
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-6">
+                {/** Information Tuteur 1 */}
                 <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
                     <h3 className="font-bold text-slate-900 mb-6 flex items-center gap-2">
                         <User className="w-5 h-5 text-pink-500" />
-                        Informations Tuteur
+                        Informations Tuteur 1
                     </h3>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -60,7 +66,7 @@ export default function ParentForm({ onSuccess, onCancel }: ParentFormProps) {
                             <label className="text-sm font-medium text-slate-700">Nom Complet</label>
                             <input
                                 type="text"
-                                name="name"
+                                name="name1"
                                 required
                                 placeholder="Ex: Ahmed Konzani"
                                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 transition-all text-sm"
@@ -68,7 +74,7 @@ export default function ParentForm({ onSuccess, onCancel }: ParentFormProps) {
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-slate-700">Relation</label>
-                            <select name="relation" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 transition-all text-sm">
+                            <select name="relation1" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 transition-all text-sm">
                                 <option value="father">Père</option>
                                 <option value="mother">Mère</option>
                                 <option value="guardian">Tuteur Légal</option>
@@ -83,7 +89,7 @@ export default function ParentForm({ onSuccess, onCancel }: ParentFormProps) {
                                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
                                 <input
                                     type="email"
-                                    name="email"
+                                    name="email1"
                                     placeholder="parent@email.com"
                                     className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 transition-all text-sm"
                                 />
@@ -95,7 +101,8 @@ export default function ParentForm({ onSuccess, onCancel }: ParentFormProps) {
                                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
                                 <input
                                     type="tel"
-                                    name="phone"
+                                    name="phone1"
+                                    required
                                     placeholder="+216 00 000 000"
                                     className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 transition-all text-sm"
                                 />
@@ -103,7 +110,63 @@ export default function ParentForm({ onSuccess, onCancel }: ParentFormProps) {
                         </div>
                     </div>
                 </div>
+                {/** Information Tuteur 2 */}
+                <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                    <h3 className="font-bold text-slate-900 mb-6 flex items-center gap-2">
+                        <User className="w-5 h-5 text-pink-500" />
+                        Informations Tuteur 2
+                    </h3>
 
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-slate-700">Nom Complet</label>
+                            <input
+                                type="text"
+                                name="name2"
+                                required
+                                placeholder="Ex: Ahmed Konzani"
+                                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 transition-all text-sm"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-slate-700">Relation</label>
+                            <select name="relation2" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 transition-all text-sm">
+                                <option value="father">Père</option>
+                                <option value="mother">Mère</option>
+                                <option value="guardian">Tuteur Légal</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-slate-700">Email</label>
+                            <div className="relative">
+                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+                                <input
+                                    type="email"
+                                    name="email2"
+                                    placeholder="parent@email.com"
+                                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 transition-all text-sm"
+                                />
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-slate-700">Téléphone</label>
+                            <div className="relative">
+                                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+                                <input
+                                    type="tel"
+                                    name="phone2"
+                                    required
+                                    placeholder="+216 00 000 000"
+                                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 transition-all text-sm"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {/** Information de compte */}
                 <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
                     <h3 className="font-bold text-slate-900 mb-6 flex items-center gap-2">
                         <User className="w-5 h-5 text-indigo-500" />

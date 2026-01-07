@@ -41,10 +41,14 @@ model Student {
 
 model Parent {
   id          Int       @id @default(autoincrement())
-  name        String?
-  relation    String?
-  email       String?
-  phone       String?
+  name1       String?
+  relation1   String?
+  email1      String?
+  phone1      String?
+  name2       String?
+  relation2   String?
+  email2      String?
+  phone2      String?
   childrenIds Student[]
   username    String?
   password    String?
