@@ -4,8 +4,8 @@ import { useState, useMemo, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, MapPin, Plus, X, BookOpen, User, Home, Layers, Trash2, Pencil, Printer, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const DAYS = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
-const HOURS = ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30"];
+const DAYS = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi"];
+const HOURS = ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30"];
 
 interface ScheduleEntry {
     id: number;
@@ -251,10 +251,28 @@ export default function SchedulePage() {
                         <p className="text-lg font-bold text-slate-700 mt-1">
                             {viewMode === "class" ? "Classe : " : viewMode === "teacher" ? "Enseignant : " : "Salle : "}
                             {selectedId ? (
-                                viewMode === "class" ? classes.find(c => String(c.id) === selectedId)?.name :
-                                    viewMode === "teacher" ? teachers.find(t => String(t.id) === selectedId)?.name :
-                                        rooms.find(r => String(r.id) === selectedId)?.name
-                            ) : "Aucun sélectionné"}
+                            viewMode === "class" ? (
+                                (() => {
+                                const c = classes.find(c => String(c.id) === selectedId);
+                                if (!c) return "Aucun sélectionné";
+
+                                const levels: Record<string, string> = {
+                                    "1": "السابعة أساسي",
+                                    "2": "الثامنة أساسي",
+                                    "3": "التاسعة أساسي",
+                                };
+
+                                return `${levels[c.level]} ${c.name}`;
+                                })()
+                            ) : viewMode === "teacher" ? (
+                                teachers.find(t => String(t.id) === selectedId)?.name ?? "Aucun sélectionné"
+                            ) : (
+                                rooms.find(r => String(r.id) === selectedId)?.name ?? "Aucun sélectionné"
+                            )
+                            ) : (
+                            "Aucun sélectionné"
+                            )}
+
                         </p>
                     </div>
                     <div className="text-right">
@@ -275,7 +293,7 @@ export default function SchedulePage() {
                         margin: 0.5cm;
                     }
                     :root {
-                        --print-hour-height: 3.2rem;
+                        --print-hour-height: 6.5rem;
                     }
                     body {
                         print-color-adjust: exact;
@@ -285,6 +303,18 @@ export default function SchedulePage() {
                     .no-print {
                         display: none !important;
                     }
+                    
+                    /* NEW: Fix for row height in print */
+                    .print-row {
+                        height: var(--print-hour-height) !important;
+                        min-height: var(--print-hour-height) !important;
+                        page-break-inside: avoid;
+                    }
+                    .print-grid-container {
+                        min-width: 100% !important;
+                        width: 100% !important;
+                    }
+
                     /* Scale down fonts for print */
                     .text-3xl { font-size: 1.5rem !important; }
                     .text-2xl { font-size: 1.25rem !important; }
@@ -354,7 +384,7 @@ export default function SchedulePage() {
                     </select>
                 </div>
             </div><br />
-
+            {/** Select View Mode et choix classe/enseignant/salle */}
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 shrink-0 no-print">
                 <div className="flex flex-wrap items-center gap-4">
                     {/* View Switcher */}
@@ -382,7 +412,7 @@ export default function SchedulePage() {
                         </button>
                     </div>
 
-                    {/* Selector Dropdown */}
+                    {/* Select Classe, Enseignant, Salle : selon view mode */}
                     <select
                         value={selectedId}
                         onChange={(e) => setSelectedId(e.target.value)}
@@ -397,7 +427,7 @@ export default function SchedulePage() {
                             rooms.map(r => <option key={r.id} value={r.id}>{r.name}</option>)
                         )}
                     </select>
-
+                    {/** Button Ajouter un cours apres choix classe/enseignant/salle */}
                     {!isReadOnly && <button
                         onClick={() => {
                             setEditingId(null);
@@ -417,7 +447,7 @@ export default function SchedulePage() {
                         <Plus className="w-5 h-5" />
                         Ajouter un cours
                     </button>}
-
+                    {/** Boutton Imprimer */}
                     <button
                         onClick={handlePrint}
                         disabled={!selectedId}
@@ -436,7 +466,7 @@ export default function SchedulePage() {
                     <div className="p-4 border-r border-slate-300 flex items-center justify-center text-slate-400">
                         <Clock className="w-5 h-5" />
                     </div>
-                    <div className="grid grid-cols-[repeat(22,minmax(0,1fr))]">
+                    <div className="grid grid-cols-[repeat(20,minmax(0,1fr))]">
                         {HOURS.map((hour, idx) => (
                             <div
                                 key={hour}
@@ -454,16 +484,16 @@ export default function SchedulePage() {
 
                 {/* Main Grid Area */}
                 <div className="flex-1 overflow-auto custom-scrollbar">
-                    <div className="min-w-[1200px]">
+                    <div className="min-w-[1200px] print-grid-container">
                         {DAYS.map((day, dayIndex) => (
-                            <div key={day} className="grid grid-cols-[120px_1fr] border-b border-slate-200 relative group/day">
+                            <div key={day} className="grid grid-cols-[120px_1fr] border-b border-slate-200 relative group/day print-row">
                                 {/* Day Column */}
-                                <div className="border-r border-slate-300 bg-slate-50/30 flex items-center justify-center p-4 min-h-[120px]">
+                                <div className="border-r border-slate-300 bg-slate-50/30 flex items-center justify-center p-4 min-h-[120px] print:min-h-0 print:h-full">
                                     <span className="text-sm font-bold text-slate-600 uppercase tracking-widest [writing-mode:vertical-lr] rotate-180">{day}</span>
                                 </div>
 
                                 {/* Hours Row for this Day */}
-                                <div className="grid grid-cols-[repeat(22,minmax(0,1fr))] relative">
+                                <div className="grid grid-cols-[repeat(20,minmax(0,1fr))] relative">
                                     {HOURS.map((hour, hi) => (
                                         <div key={hi} className={`border-l h-full ${hour.endsWith(":00") ? "border-slate-300/60" : "border-slate-100/50"} first:border-l-0`} />
                                     ))}
@@ -528,33 +558,41 @@ export default function SchedulePage() {
                                             return (
                                                 <div
                                                     key={item.id}
-                                                    className={`absolute h-full z-10 flex flex-col group/slot pointer-events-none left-0 right-0 w-auto px-0.5`}
+                                                    className={`absolute z-10 flex flex-col group/slot pointer-events-none px-0.5`}
                                                     style={{
-                                                        gridColumnStart: colStart,
-                                                        gridColumnEnd: colStart + colSpan,
+                                                        left: `${(offset / 10) * 100}%`,
+                                                        width: `${(item.duration / 10) * 100}%`,
                                                         top: lane === 'bottom' ? '50%' : '0',
                                                         height: lane === 'full' ? '100%' : '50%'
                                                     }}
                                                 >
                                                     <div className={`w-full h-full rounded-xl border border-slate-200 pointer-events-auto shadow-sm relative overflow-hidden flex flex-col ${item.color} ${lane === 'top' ? 'border-b border-black/10' : ''}`}>
+                                                        {/** Boutton Modifier et Supprimer Cours */}
                                                         <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover/slot:opacity-100 transition-all z-20 no-print">
                                                             <button onClick={(e) => { e.stopPropagation(); handleEditEntry(item); }} className="p-1 rounded-lg bg-white/40 hover:bg-white/60 text-current transition-all"><Pencil className="w-3 h-3" /></button>
                                                             <button onClick={(e) => { e.stopPropagation(); handleDeleteEntry(item.id); }} className="p-1 rounded-lg bg-white/40 hover:bg-red-500 hover:text-white transition-all"><Trash2 className="w-3 h-3" /></button>
                                                         </div>
+                                                        {/** Informations Cours */}
                                                         <div className="p-2 overflow-hidden leading-tight flex-1 flex flex-col justify-center">
+                                                            {/** A/B/GR + Matiere */}
                                                             <span className="text-[10px] font-black uppercase opacity-80 block truncate">
                                                                 {item.week === "A" ? "[A] " : item.week === "B" ? "[B] " : item.group ? "[GR] " : ""}
                                                                 {subjects.find(s => s.id === item.subjectId)?.name || item.subject?.name}
                                                             </span>
+                                                            {/** Enseignant + Salle | Classe */}
                                                             <div className="flex flex-col">
-                                                                <div className={`flex items-center gap-1 ${viewMode === "teacher" ? "no-print" : ""}`}>
+                                                                {/** Enseignant */}
+                                                                <div className={viewMode === 'room' || viewMode === 'class' ? 'flex items-center gap-1 no-print' : 'flex items-center gap-1'}>
                                                                     <User className="w-2.5 h-2.5 opacity-60" />
                                                                     <span className="font-bold text-[11px] truncate">{teacher?.name}</span>
                                                                 </div>
-                                                                <div className={`flex items-center gap-1 ${viewMode === "class" ? "no-print" : ""}`}>
+                                                                {/** Salle | Classe */}
+                                                                <div className={`flex items-center gap-1`}>
                                                                     <Home className="w-2.5 h-2.5 opacity-60" />
                                                                     <span className="font-medium text-[10px] truncate">
-                                                                        {room?.name} | {(studentClass?.level === "1") ? `7B${studentClass?.name}` : (studentClass?.level === "2") ? `8B${studentClass?.name}` : (studentClass?.level === "3") ? `9B${studentClass?.name}` : studentClass?.name}
+                                                                        <span className={`${viewMode === "room" ? "no-print" : ""}`}>{room?.name}</span>
+                                                                        <span className={viewMode === "room" || viewMode === "class" ? "no-print" : ""}>|</span>
+                                                                        <span className={`${viewMode === "class" ? "no-print" : ""}`}>{(studentClass?.level === "1") ? `${studentClass?.name}ق7أساسي` : (studentClass?.level === "2") ? `${studentClass?.name}ق8أساسي` : (studentClass?.level === "3") ? `${studentClass?.name}ق9أساسي` : ""}</span>
                                                                     </span>
                                                                 </div>
                                                             </div>
@@ -569,14 +607,14 @@ export default function SchedulePage() {
                         ))}
                     </div>
                 </div>
-
+                {/** Si Aucun cours planifié */}
                 {filteredEntries.length === 0 && selectedId && (
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20 flex-col gap-4 z-0">
                         <CalendarIcon className="w-16 h-16 text-slate-300" />
                         <p className="font-medium text-slate-400">Aucun cours planifié</p>
                     </div>
                 )}
-
+                {/** Si aucune vue selectionnée */}
                 {!selectedId && (
                     <div className="absolute inset-0 flex items-center justify-center bg-slate-50/50 backdrop-blur-[2px] z-20">
                         <div className="text-center p-8 bg-white rounded-2xl shadow-xl border border-slate-100 max-w-sm">
@@ -598,6 +636,7 @@ export default function SchedulePage() {
                             exit={{ opacity: 0, scale: 0.9, y: 20 }}
                             className="bg-white rounded-3xl shadow-2xl w-full max-w-xl overflow-hidden border border-white"
                         >
+                            {/** Header Modal */}
                             <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
                                 <div>
                                     <h2 className="text-xl font-black text-slate-800 uppercase tracking-tight">
@@ -615,8 +654,9 @@ export default function SchedulePage() {
                                     <X className="w-5 h-5" />
                                 </button>
                             </div>
-
+                            {/** Form Ajout Cours */}
                             <form onSubmit={handleAddEntry} className="p-8 space-y-6">
+                                {/** Matiere : ligne Séparé */}
                                 <div className="space-y-2">
                                     <label className="text-sm font-semibold text-slate-700">Matière</label>
                                     {viewMode === "teacher" ? (
@@ -641,8 +681,9 @@ export default function SchedulePage() {
                                         </select>
                                     )}
                                 </div>
-
+                                {/** Jour / heure debut : meme ligne*/}
                                 <div className="grid grid-cols-2 gap-4">
+                                    {/** Jour */}
                                     <div className="space-y-2">
                                         <label className="text-sm font-semibold text-slate-700">Jour</label>
                                         <select
@@ -653,6 +694,7 @@ export default function SchedulePage() {
                                             {DAYS.map(d => <option key={d} value={d}>{d}</option>)}
                                         </select>
                                     </div>
+                                    {/** heure de début */}
                                     <div className="space-y-2">
                                         <label className="text-sm font-semibold text-slate-700">Heure de début</label>
                                         <select
@@ -664,8 +706,9 @@ export default function SchedulePage() {
                                         </select>
                                     </div>
                                 </div>
-
+                                {/** Duree / Salle : meme ligne */}
                                 <div className="grid grid-cols-2 gap-4">
+                                    {/** Durée Debut */}
                                     <div className="space-y-2">
                                         <label className="text-sm font-semibold text-slate-700">Durée (heures)</label>
                                         <input
@@ -678,6 +721,7 @@ export default function SchedulePage() {
                                             className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm font-medium"
                                         />
                                     </div>
+                                    {/** Salle */}
                                     <div className="space-y-2">
                                         <label className="text-sm font-semibold text-slate-700">Salle</label>
                                         {viewMode === "room" ? (
@@ -700,7 +744,7 @@ export default function SchedulePage() {
                                         )}
                                     </div>
                                 </div>
-
+                                {/* View Room */}
                                 {viewMode === "room" ? (
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-2">
@@ -727,12 +771,12 @@ export default function SchedulePage() {
                                             >
                                                 <option value="">Choisir...</option>
                                                 {classes.map(c => <option key={c.id} value={c.id}>
-                                                    {(c.level === "1") ? `7B${c.name}` : (c.level === "2") ? `8B${c.name}` : (c.level === "3") ? `9B${c.name}` : c.name}
+                                                    {(c.level === "1") ? `السابعة أساسي ${c.name}` : (c.level === "2") ? `الثامنة أساسي ${c.name}` : (c.level === "3") ? `التاسعة أساسي ${c.name}` : ""}
                                                 </option>)}
                                             </select>
                                         </div>
                                     </div>
-                                ) : viewMode === "class" ? (
+                                ) : /* View Class*/viewMode === "class" ? (
                                     <div className="space-y-2">
                                         <label className="text-sm font-semibold text-slate-700">Enseignant</label>
                                         <select
@@ -747,7 +791,7 @@ export default function SchedulePage() {
                                             ))}
                                         </select>
                                     </div>
-                                ) : (
+                                ) : /* View Teacher*/(
                                     <div className="space-y-2">
                                         <label className="text-sm font-semibold text-slate-700">Classe</label>
                                         <select
@@ -758,7 +802,7 @@ export default function SchedulePage() {
                                         >
                                             <option value="">Sélectionner une classe...</option>
                                             {classes.map(c => <option key={c.id} value={c.id}>
-                                                {(c.level === "1") ? `7B${c.name}` : (c.level === "2") ? `8B${c.name}` : (c.level === "3") ? `9B${c.name}` : c.name}
+                                                {(c.level === "1") ? `السابعة أساسي ${c.name}` : (c.level === "2") ? `الثامنة أساسي ${c.name}` : (c.level === "3") ? `التاسعة أساسي ${c.name}` : ""}
                                             </option>)}
                                         </select>
                                     </div>

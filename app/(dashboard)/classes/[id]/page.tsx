@@ -51,6 +51,7 @@ export default function EditClassPage({ params }: { params: Promise<{ id: string
         const data = {
             name: formData.get("name"),
             level: formData.get("level"),
+            codeclass: formData.get("codeclass")
             // capacity: Number(formData.get("capacity")) // If added later
         };
 
@@ -64,7 +65,8 @@ export default function EditClassPage({ params }: { params: Promise<{ id: string
             if (res.ok) {
                 router.push("/classes");
             } else {
-                alert("Erreur lors de la mise à jour");
+                const error = await res.json();
+                alert(error.error);
             }
         } catch (error) {
             console.error("Failed to update class", error);
@@ -150,7 +152,19 @@ export default function EditClassPage({ params }: { params: Promise<{ id: string
                         <input
                             name="name"
                             type="text"
+                            required
                             defaultValue={classe.name}
+                            readOnly={isReadOnly}
+                            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-slate-700">Code de la Classe (Eduserv)</label>
+                        <input
+                            name="codeclass"
+                            type="text"
+                            required
+                            defaultValue={classe.codeclass}
                             readOnly={isReadOnly}
                             className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                         />

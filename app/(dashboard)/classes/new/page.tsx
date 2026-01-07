@@ -18,16 +18,19 @@ export default function NewClassPage() {
         try {
             const res = await fetch("/api/classes", {
                 method: "POST",
-                body: JSON.stringify({ name: formData.get("name"), level: formData.get("level") }),
+                body: JSON.stringify({ name: formData.get("name"), level: formData.get("level"), codeclass: formData.get("codeclass") }),
             });
 
-            if (!res.ok) throw new Error("Erreur lors de la création");
+            if (!res.ok) {
+                const error = await res.json();
+                throw new Error(error.error);
+            }
 
             router.push("/classes");
             router.refresh();
         } catch (error) {
             console.error(error);
-            alert("Une erreur est survenue.");
+            alert(error);
         } finally {
             setIsLoading(false);
         }
@@ -58,7 +61,7 @@ export default function NewClassPage() {
                     {/* Level  */ }
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-slate-700">Niveau</label>
-                        <select name="level" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm">
+                        <select required name="level" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm">
                             <option value="">Sélectionner un niveau...</option>
                             <option value="1">السابعة أساسي</option>
                             <option value="2">الثامنة أساسي</option>
@@ -71,6 +74,18 @@ export default function NewClassPage() {
                         <input
                             type="text"
                             name="name"
+                            required
+                            placeholder="Ex: 1"
+                            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
+                        />
+                    </div>
+                    {/* Code classe eduserv  */ }
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-slate-700">Code de la Classe (Eduserv)</label>
+                        <input
+                            type="text"
+                            name="codeclass"
+                            required
                             placeholder="Ex: 1"
                             className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                         />

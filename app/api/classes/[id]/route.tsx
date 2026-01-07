@@ -20,6 +20,18 @@ export async function GET(request: Request, props: { params: Promise<{ id: strin
 export async function PUT(request: Request, props: { params: Promise<{ id: string }> }) {
     const params = await props.params;
     const json = await request.json()
+    const classes = await prisma.class.findFirst({
+        where: {
+            level: json.level,
+            name: json.name,
+            NOT: {
+                id: Number(params.id), // exclure l'objet courant
+            },
+        }
+    })
+    if (classes) {
+        return NextResponse.json({ error: "Classe déjà existante" }, { status: 400 })
+    }
     const updatedClass = await prisma.class.update({
         where: {
             id: Number(params.id)
@@ -27,6 +39,7 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
         data: {
             name: json.name,
             level: json.level,
+            codeclass: json.codeclass,
             //teacherId: json.teacherId ? Number(json.teacherId) : null,
         }
     })

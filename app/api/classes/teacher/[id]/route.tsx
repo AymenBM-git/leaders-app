@@ -5,6 +5,14 @@ export async function GET(request: Request, props: { params: Promise<{ id: strin
     const params = await props.params;
     if(params.id==="0"){
         return NextResponse.json(await prisma.class.findMany({
+            orderBy:[
+                {
+                level: 'asc',
+                },
+                {
+                name: 'asc',
+                },
+            ],
             include: {
                 teachers: true,
                 students: true,
@@ -56,7 +64,10 @@ export async function GET(request: Request, props: { params: Promise<{ id: strin
     .map(s => s.classId)
     .filter((id): id is number => id !== null);
     console.log("Class IDs extracted:", classIds);*/
-    const classes = schedules.map(s => s.class);
+    const classes = schedules
+    .map(s => s.class)
+    .filter((objet, index, self) =>
+  index === self.findIndex(o => o?.id === objet?.id));
 
     //return NextResponse.json(classIds)
     return NextResponse.json(classes)

@@ -80,6 +80,7 @@ model Class {
   id        Int        @id @default(autoincrement())
   name      String?
   level     String?
+  codeclass String?
   teachers  Teacher[]
   students  Student[]
   schedules Schedule[]
