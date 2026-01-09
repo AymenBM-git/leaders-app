@@ -1,0 +1,62 @@
+import { cookies } from 'next/headers';
+import prisma from '../../../lib/prisma';
+import { NextResponse } from 'next/server'
+
+export async function GET() {
+    const month= new Date().getMonth()+1;
+    let date1="";
+    let date2="";
+    if(month>=9 ){
+            date1= new Date().getFullYear() +"-09-01";
+            date2= (new Date().getFullYear()+1) +"-06-30";
+    }
+    else{
+            date1= (new Date().getFullYear()-1) +"-09-01";
+            date2= (new Date().getFullYear()) +"-06-30";
+    }
+    const absence = await prisma.absence.findMany({
+        where: {
+            dateAbsence: { 
+                gte: new Date(date1),
+                lte: new Date(date2),
+            }
+        },
+        orderBy: {
+            dateAbsence: 'desc'
+        },
+        include: {
+            student: true,
+            classe: true,
+        }
+    })
+    return NextResponse.json(absence)
+}
+
+export async function POST(request: Request) {
+    try {
+        const json = await request.json()
+        const newabsence = await prisma.absence.create({
+            data: {
+                studentId: Number(json.studentId),
+                classId: Number(json.classId),
+                dateAbsence: new Date(json.dateAbsence),
+                hour: json.hour,
+                //codeabsence: json.codeabsence
+            }
+        })
+        // 1. Log Activity
+        const cookiesStore = cookies();
+        const name = String((await cookiesStore).get('user-name')?.value);
+        const namestud = json.studentName; 
+        await prisma.activity.create({
+            data: {
+                nameUser: name,
+                description: `a ajouter l'absence de l'élève: ${namestud}`,
+            }
+        });
+        return NextResponse.json(newabsence)
+    } catch (error) {
+        console.error("Error creating absence:", error)
+        return NextResponse.json({ error: "Une erreur est survenue lors de la création" }, { status: 500 })
+    }
+}

@@ -37,6 +37,7 @@ model Student {
   phone     String?
   gender    String?
   payments  Payment[]
+  absences  Absence[]
 }
 
 model Parent {
@@ -84,11 +85,11 @@ model Class {
   id        Int        @id @default(autoincrement())
   name      String?
   level     String?
-  codeclass String?
   teachers  Teacher[]
   students  Student[]
   schedules Schedule[]
   tafs      Taf[]
+  absences  Absence[]
 }
 
 model Room {
@@ -151,4 +152,14 @@ model Activity {
   nameUser     String?
   dateActivity DateTime? @default(now())
   description  String?
+}
+
+model Absence {
+  id          Int       @id @default(autoincrement())
+  student     Student?  @relation(fields: [studentId], references: [id])
+  studentId   Int?
+  classe      Class?    @relation(fields: [classId], references: [id])
+  classId     Int?
+  dateAbsence DateTime?
+  hour        String?
 }

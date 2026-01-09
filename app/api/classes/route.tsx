@@ -37,7 +37,7 @@ export async function POST(request: Request) {
             data: {
                 name: json.name, //(json.level === "1") ? "السابعة أساسي " + json.name : (json.level === "2") ? "الثامنة أساسي " + json.name : "التاسعة أساسي " + json.name,
                 level: json.level,
-                codeclass: json.codeclass
+                //codeclass: json.codeclass
             }
         })
         // 1. Log Activity

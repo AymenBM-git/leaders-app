@@ -39,8 +39,7 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
         data: {
             name: json.name,
             level: json.level,
-            codeclass: json.codeclass,
-            //teacherId: json.teacherId ? Number(json.teacherId) : null,
+            //codeclass: json.codeclass,
         }
     })
     // 1. Log Activity

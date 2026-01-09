@@ -18,7 +18,11 @@ import {
     MapPin,
     CreditCard,
     Book,
-    CalendarArrowDown
+    CalendarArrowDown,
+    UserRoundPlus,
+    UserRoundX,
+    BookA,
+    NotebookPen
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
@@ -72,8 +76,15 @@ const routes = [
         user: ["admin", "prof" ]
     },
     {
+        label: "Absences",
+        icon: BookA,
+        href: "/absences",
+        color: "text-red-500",
+        user: ["admin", "prof" ]
+    },
+    {
         label: "TAF/Devoir",
-        icon: Book,
+        icon: NotebookPen,
         href: "/tafs",
         color: "text-purple-500",
         user: ["admin", "prof" ]
