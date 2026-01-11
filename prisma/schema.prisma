@@ -79,6 +79,7 @@ model Teacher {
   user      User?
   subject   Subject?   @relation(fields: [subjectId], references: [id])
   subjectId Int?
+  planings  Planing[]
 }
 
 model Class {
@@ -162,4 +163,20 @@ model Absence {
   classId     Int?
   dateAbsence DateTime?
   hour        String?
+}
+
+model Planing {
+  id          Int       @id @default(autoincrement())
+  teacherId   Int?
+  teacher     Teacher?  @relation(fields: [teacherId], references: [id])
+  /**
+   * classId     Int?
+   * class       Class?    @relation(fields: [classId], references: [id])
+   */
+  as          String?
+  name        String?
+  type        String?
+  level       String?
+  datePlaning DateTime?
+  description String?
 }

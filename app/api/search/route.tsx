@@ -35,13 +35,15 @@ export async function GET(request: Request) {
             prisma.parent.findMany({
                 where: {
                     OR: [
-                        { name: { contains: query ,mode: 'insensitive'} },
-                        { phone: { contains: query ,mode: 'insensitive' } },
+                        { name1: { contains: query ,mode: 'insensitive'} },
+                        { name2: { contains: query ,mode: 'insensitive' } },
+                        { phone1: { contains: query ,mode: 'insensitive' } },
+                        { phone2: { contains: query ,mode: 'insensitive' } },
                         { username: { contains: query ,mode: 'insensitive' } },
                     ],
                 },
                 take: 5,
-                select: { id: true, name: true },
+                select: { id: true, name1: true, name2: true, phone1: true, phone2: true, username: true },
             }),
         ]);
 
@@ -65,7 +67,7 @@ export async function GET(request: Request) {
             ...parents.map(p => ({
                 id: `parent-${p.id}`,
                 type: 'parent',
-                title: p.name || 'Parent sans nom',
+                title: `${p.name1 || ''} ${p.name2 || ''}`.trim() || 'Parent sans nom',
                 subtitle: 'Parent',
                 href: `/parents/${p.id}`,
             })),

@@ -22,7 +22,8 @@ import {
     UserRoundPlus,
     UserRoundX,
     BookA,
-    NotebookPen
+    NotebookPen,
+    LibraryBig
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
@@ -80,6 +81,13 @@ const routes = [
         icon: BookA,
         href: "/absences",
         color: "text-red-500",
+        user: ["admin", "prof" ]
+    },
+    {
+        label: "Répartition Annuelle",
+        icon: LibraryBig,
+        href: "/planing",
+        color: "text-green-500",
         user: ["admin", "prof" ]
     },
     {
