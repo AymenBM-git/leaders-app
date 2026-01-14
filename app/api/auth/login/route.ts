@@ -1,7 +1,6 @@
-import  prisma  from '../../../../lib/prisma';
+import prisma from '../../../../lib/prisma';
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
-import { id } from 'date-fns/locale';
 
 export async function POST(request: Request) {
     try {
@@ -14,23 +13,25 @@ export async function POST(request: Request) {
             );
         }
 
-        const adminUser = await prisma.user.findUnique({
-            where: { login: "admin" },
+        /** Ajouter User Admin if not exist */
+        const adminUser = await prisma.user.findFirst({
+            where: { role: "admin" },
         });
-        if(!adminUser){
+        if (!adminUser) {
             await prisma.user.create({
                 data: {
                     login: "admin",
                     password: bcrypt.hashSync("admin", 10),
                     role: "admin",
+                    active: true,
                 },
             });
         }
 
+        // Verify login
         const user = await prisma.user.findUnique({
             where: { login },
         });
-
         if (!user) {
             return NextResponse.json(
                 { message: 'Identifiant ou mot de passe incorrect' },
@@ -42,11 +43,18 @@ export async function POST(request: Request) {
         // Note: This will fail for legacy plain text passwords in the DB if not handled.
         // Ideally, we migrate legacy passwords. For now, we assume migration or new users.
         const isPasswordValid = await bcrypt.compare(password, user.password);
-
         if (!isPasswordValid) {
             return NextResponse.json(
                 { message: 'Identifiant ou mot de passe incorrect' },
                 { status: 401 }
+            );
+        }
+
+        //Verify Active
+        if (!user.active) {
+            return NextResponse.json(
+                { message: "Votre Compte est désactiver. Veuillez contacter l'administration" },
+                { status: 500 }
             );
         }
 
@@ -66,7 +74,7 @@ export async function POST(request: Request) {
             login: user.login,
             role: user.role,
             displayName: displayName,
-            id: user.idTeach?user.idTeach:0
+            id: user.idTeach ? user.idTeach : 0
         });
 
     } catch (error) {

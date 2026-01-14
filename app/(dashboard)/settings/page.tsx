@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 interface User {
     login: string;
     role: string;
+    active: boolean;
     // Password is handled separately for updates
 }
 
@@ -25,7 +26,8 @@ export default function SettingsPage() {
     const [formData, setFormData] = useState({
         login: "",
         password: "",
-        role: "admin"
+        role: "admin",
+        active: true,
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -51,17 +53,17 @@ export default function SettingsPage() {
         setModalMode(mode);
         if (mode === "edit" && user) {
             setSelectedUser(user);
-            setFormData({ login: user.login, password: "", role: user.role || "admin" }); // Don't pre-fill password
+            setFormData({ login: user.login, password: "", role: user.role || "admin", active: user.active }); // Don't pre-fill password
         } else {
             setSelectedUser(null);
-            setFormData({ login: "", password: "", role: "admin" });
+            setFormData({ login: "", password: "", role: "admin", active: true });
         }
         setIsModalOpen(true);
     };
 
     const handleCloseModal = () => {
         setIsModalOpen(false);
-        setFormData({ login: "", password: "", role: "admin" });
+        setFormData({ login: "", password: "", role: "admin", active: true });
         setSelectedUser(null);
     };
 
@@ -143,6 +145,7 @@ export default function SettingsPage() {
                             <tr>
                                 <th className="px-6 py-4 font-semibold text-slate-900">Identifiant</th>
                                 <th className="px-6 py-4 font-semibold text-slate-900">Rôle</th>
+                                <th className="px-6 py-4 font-semibold text-slate-900">Actif</th>
                                 <th className="px-6 py-4 font-semibold text-slate-900 text-right">Actions</th>
                             </tr>
                         </thead>
@@ -174,6 +177,7 @@ export default function SettingsPage() {
                                                 {user.role}
                                             </span>
                                         </td>
+                                        <td className="px-6 py-4 font-medium text-slate-900">{user.active ? "Oui" : "Non"}</td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="flex items-center justify-end gap-2">
                                                 <button
@@ -270,6 +274,15 @@ export default function SettingsPage() {
                                             <option value="admin">Admin</option>
                                             <option value="prof">Enseignant</option>
                                         </select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-slate-700">Actif</label>
+                                        <input type="checkbox"
+                                            checked={formData.active}
+                                            onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
+                                            className="m-5 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all bg-white"
+                                        />
+
                                     </div>
 
                                     <div className="pt-4 flex items-center justify-end gap-3">

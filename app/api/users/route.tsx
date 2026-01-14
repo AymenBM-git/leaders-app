@@ -23,6 +23,7 @@ export async function POST(request: Request) {
             login: json.login,
             password: hashedPassword,
             role: json.role,
+            active: json.active,
             idTeach: json.idTeach || null,
         }
     })

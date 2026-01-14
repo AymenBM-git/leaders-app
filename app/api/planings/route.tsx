@@ -7,6 +7,7 @@ export async function GET() {
         const planings = await prisma.planing.findMany({
             include: {
                 teacher: true,
+                ressouces: true,
             },
             orderBy: {
                 datePlaning: 'asc'

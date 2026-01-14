@@ -19,6 +19,7 @@ model User {
   role     String?
   teacher  Teacher? @relation(fields: [idTeach], references: [id])
   idTeach  Int?     @unique
+  active   Boolean? @default(true)
 }
 
 model Student {
@@ -91,6 +92,7 @@ model Class {
   schedules Schedule[]
   tafs      Taf[]
   absences  Absence[]
+  ressouces Ressouce[]
 }
 
 model Room {
@@ -166,17 +168,23 @@ model Absence {
 }
 
 model Planing {
-  id          Int       @id @default(autoincrement())
+  id          Int        @id @default(autoincrement())
   teacherId   Int?
-  teacher     Teacher?  @relation(fields: [teacherId], references: [id])
-  /**
-   * classId     Int?
-   * class       Class?    @relation(fields: [classId], references: [id])
-   */
+  teacher     Teacher?   @relation(fields: [teacherId], references: [id])
   as          String?
   name        String?
   type        String?
   level       String?
   datePlaning DateTime?
   description String?
+  ressouces   Ressouce[]
+}
+
+model Ressouce {
+  id        Int      @id @default(autoincrement())
+  name      String?
+  planingId Int?
+  planing   Planing? @relation(fields: [planingId], references: [id])
+  classId   Int?
+  class     Class?   @relation(fields: [classId], references: [id])
 }

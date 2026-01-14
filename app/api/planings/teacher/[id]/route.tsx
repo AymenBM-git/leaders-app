@@ -18,7 +18,10 @@ export async function GET(
                 ...(as ? { as } : {}),
                 ...(level ? { level } : {})
             },
-            include: { teacher: true },
+            include: {
+                teacher: true,
+                ressouces: true
+            },
             orderBy: {
                 datePlaning: 'asc'
             }

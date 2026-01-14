@@ -17,11 +17,9 @@ import {
     X,
     MapPin,
     CreditCard,
-    Book,
     CalendarArrowDown,
-    UserRoundPlus,
-    UserRoundX,
     BookA,
+    NotebookText,
     NotebookPen,
     LibraryBig
 } from "lucide-react";
@@ -92,9 +90,16 @@ const routes = [
     },
     {
         label: "TAF/Devoir",
-        icon: NotebookPen,
+        icon: NotebookText,
         href: "/tafs",
         color: "text-purple-500",
+        user: ["admin", "prof" ]
+    },
+    {
+        label: "Notes",
+        icon: NotebookPen,
+        href: "/notes",
+        color: "text-yellow-500",
         user: ["admin", "prof" ]
     },
     {
@@ -165,7 +170,7 @@ export const Sidebar = () => {
             )}>
                 <div className="h-full flex flex-col glass-effect-sidebar bg-[#111827]">
                     {/* Logo with close button for mobile */}
-                    <div className="px-6 py-8 flex items-center justify-between">
+                    <div className="px-6 py-4 flex items-center justify-between">
                         <Link href="/dashboard" className="flex items-center gap-x-2">
                             {/*<div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-500 flex items-center justify-center">
                                 <School className="text-white w-6 h-6" />
@@ -211,7 +216,7 @@ export const Sidebar = () => {
                     </div>
 
                     {/* User / Settings Footer */}
-                    <div className="mt-auto px-3 py-6 border-t border-white/10">
+                    <div className="mt-auto px-3 py-4 border-t border-white/10">
                         {role==="admin" && <Link href="/settings" onClick={() => close()} className="flex items-center p-3 rounded-xl hover:bg-white/10 text-zinc-400 transition-colors">
                             <Settings className="h-5 w-5 mr-3" />
                             <span className="font-medium text-sm">Paramètres</span>

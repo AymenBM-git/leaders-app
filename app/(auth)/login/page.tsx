@@ -156,11 +156,15 @@ export default function LoginPage() {
                             />
                         </div>
 
-                        {/* Password Input */}
+                        {/* oubliee & Password Input */}
                         <div className="space-y-2">
                             <div className="flex items-center justify-between">
                                 <label className="text-sm font-medium text-slate-900">Mot de passe</label>
-                                <a href="#" className="text-sm font-medium text-indigo-600 hover:text-indigo-500">Oublié ?</a>
+                                <a href="#"
+                                    onClick={() => setError("Veuillez contacter l'administration pour réinitialiser votre mot de passe")}
+                                    className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                                >Oublié ?
+                                </a>
                             </div>
                             <input
                                 type="password"
@@ -197,7 +201,7 @@ export default function LoginPage() {
             </div>
 
             {/* Right Side - Image/Decoration */}
-            <div className="hidden lg:flex flex-1 relative overflow-hidden bg-slate-900">
+            <div className="hidden lg:flex flex-1 justify-center items-center relative overflow-hidden bg-slate-900">
                 <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/90 to-violet-600/90 z-10 mix-blend-multiply" />
                 {/* Abstract shapes */}
                 <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full bg-indigo-500/30 blur-3xl" />

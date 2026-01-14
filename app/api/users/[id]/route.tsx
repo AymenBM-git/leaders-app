@@ -20,6 +20,7 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
   let dataToUpdate: any = {
     login: json.login,
     role: json.role,
+    active: json.active,
   };
 
   if (json.password) {
