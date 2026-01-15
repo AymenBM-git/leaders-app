@@ -1,5 +1,5 @@
 import React from 'react';
-import type { XmlHeaderData } from '../types';
+import type { XmlHeaderData } from './types';
 import { School, User, Calendar, BookOpen } from 'lucide-react';
 
 interface Props {

@@ -1,22 +1,23 @@
 import { cookies } from 'next/headers';
 import prisma from '../../../lib/prisma';
 import { NextResponse } from 'next/server'
+import { notifyParentsOfStudent } from '../../../lib/notifications';
 
 export async function GET() {
-    const month= new Date().getMonth()+1;
-    let date1="";
-    let date2="";
-    if(month>=9 ){
-            date1= new Date().getFullYear() +"-09-01";
-            date2= (new Date().getFullYear()+1) +"-06-30";
+    const month = new Date().getMonth() + 1;
+    let date1 = "";
+    let date2 = "";
+    if (month >= 9) {
+        date1 = new Date().getFullYear() + "-09-01";
+        date2 = (new Date().getFullYear() + 1) + "-06-30";
     }
-    else{
-            date1= (new Date().getFullYear()-1) +"-09-01";
-            date2= (new Date().getFullYear()) +"-06-30";
+    else {
+        date1 = (new Date().getFullYear() - 1) + "-09-01";
+        date2 = (new Date().getFullYear()) + "-06-30";
     }
     const absence = await prisma.absence.findMany({
         where: {
-            dateAbsence: { 
+            dateAbsence: {
                 gte: new Date(date1),
                 lte: new Date(date2),
             }
@@ -44,10 +45,19 @@ export async function POST(request: Request) {
                 //codeabsence: json.codeabsence
             }
         })
+
+        // Send notification to parent
+        const formattedDate = new Date(json.dateAbsence).toLocaleDateString('fr-FR');
+        await notifyParentsOfStudent(
+            Number(json.studentId),
+            "Nouvelle absence",
+            `Votre enfant a été marqué absent le ${formattedDate} à ${json.hour}.`,
+            "absence"
+        );
         // 1. Log Activity
         const cookiesStore = cookies();
         const name = String((await cookiesStore).get('user-name')?.value);
-        const namestud = json.studentName; 
+        const namestud = json.studentName;
         await prisma.activity.create({
             data: {
                 nameUser: name,

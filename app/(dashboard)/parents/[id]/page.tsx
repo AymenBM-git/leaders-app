@@ -33,13 +33,13 @@ export default function ParentDetailsPage({ params }: { params: Promise<{ id: st
             .split("; ")
             .find(row => row.startsWith(name + "="))
             ?.split("=")[1] ?? null;
-        };
+    };
 
     const [role, setRole] = useState('');
 
     useEffect(() => {
-            setRole(getCookie("user-role") ?? "N/A");
-        }, []);
+        setRole(getCookie("user-role") ?? "N/A");
+    }, []);
     let isReadOnly = role !== 'admin';
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -59,14 +59,15 @@ export default function ParentDetailsPage({ params }: { params: Promise<{ id: st
             // Only send password if provided
             username: formData.get("username"),
             password: formData.get("password") || undefined,
-            confirmPassword: formData.get("confirmPassword") || undefined
+            confirmPassword: formData.get("confirmPassword") || undefined,
+            active: formData.get("active") === "on"
         };
         if (data.relation1 === data.relation2) {
             alert("Les relations doivent être différentes.");
             setIsLoading(false);
             return;
         }
-        if(data.password !== data.confirmPassword) {
+        if (data.password !== data.confirmPassword) {
             alert("Les mots de passe ne correspondent pas.");
             setIsLoading(false);
             return;
@@ -162,8 +163,8 @@ export default function ParentDetailsPage({ params }: { params: Promise<{ id: st
                             </div>
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-slate-700">Relation</label>
-                                <select 
-                                    name="relation1" 
+                                <select
+                                    name="relation1"
                                     defaultValue={parent.relation1}
                                     disabled={isReadOnly}
                                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 transition-all text-sm">
@@ -225,8 +226,8 @@ export default function ParentDetailsPage({ params }: { params: Promise<{ id: st
                             </div>
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-slate-700">Relation</label>
-                                <select 
-                                    name="relation2" 
+                                <select
+                                    name="relation2"
                                     defaultValue={parent.relation2}
                                     disabled={isReadOnly}
                                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 transition-all text-sm">
@@ -277,6 +278,17 @@ export default function ParentDetailsPage({ params }: { params: Promise<{ id: st
                         </div>
 
                         <div className="space-y-6">
+                            <div className="flex items-center justify-between">
+                                <div className="space-y-0.5">
+                                    <label className="text-sm font-medium text-slate-700">Statut du compte</label>
+                                    <p className="text-xs text-slate-500">Désactiver pour bloquer l'accès à l'application mobile</p>
+                                </div>
+                                <label className="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" name="active" defaultChecked={parent.active !== false} className="sr-only peer" />
+                                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none ring-0 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-600"></div>
+                                </label>
+                            </div>
+
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-slate-700">Nom d'utilisateur<span className="text-red-500">*</span></label>
                                 <input
@@ -322,7 +334,7 @@ export default function ParentDetailsPage({ params }: { params: Promise<{ id: st
                     >
                         Annuler
                     </button>
-                    
+
                     <button
                         type="submit"
                         disabled={isLoading}

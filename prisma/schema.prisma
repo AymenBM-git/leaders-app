@@ -42,18 +42,20 @@ model Student {
 }
 
 model Parent {
-  id          Int       @id @default(autoincrement())
-  name1       String?
-  relation1   String?
-  email1      String?
-  phone1      String?
-  name2       String?
-  relation2   String?
-  email2      String?
-  phone2      String?
-  childrenIds Student[]
-  username    String?
-  password    String?
+  id            Int            @id @default(autoincrement())
+  name1         String?
+  relation1     String?
+  email1        String?
+  phone1        String?
+  name2         String?
+  relation2     String?
+  email2        String?
+  phone2        String?
+  childrenIds   Student[]
+  username      String?
+  password      String?
+  active        Boolean?       @default(true)
+  notifications Notification[]
 }
 
 model Payment {
@@ -187,4 +189,34 @@ model Ressouce {
   planing   Planing? @relation(fields: [planingId], references: [id])
   classId   Int?
   class     Class?   @relation(fields: [classId], references: [id])
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  parentId  Int
+  parent    Parent   @relation(fields: [parentId], references: [id])
+  title     String
+  message   String
+  type      String // 'absence', 'taf', 'event'
+  createdAt DateTime @default(now())
+  read      Boolean  @default(false)
+}
+
+model Note {
+  id             Int     @id @default(autoincrement())
+  as             String?
+  libperiodexam  String?
+  idenelev       String?
+  prenomnom      String?
+  libematier     String?
+  codematiere    String?
+  abretypeeprear String?
+  libTypeEpr     String?
+  iuense         String?
+  libens         String?
+  libeclass      String?
+  codeclass      String?
+  noteepre       Float?
+  codeTypeEpre   Int?
+  numEpre        Int?
 }

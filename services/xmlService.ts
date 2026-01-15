@@ -1,5 +1,5 @@
 import { XMLParser, XMLBuilder } from 'fast-xml-parser';
-import type { NoteElev, ParsedData, StudentRow, TypeEpr, XmlHeaderData } from '../types';
+import type { NoteElev, ParsedData, StudentRow, TypeEpr, XmlHeaderData } from '../components/notes/types';
 
 const parserOptions = {
   ignoreAttributes: false,

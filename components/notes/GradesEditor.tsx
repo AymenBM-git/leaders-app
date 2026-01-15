@@ -1,5 +1,5 @@
 import React from 'react';
-import type { StudentRow, TypeEpr } from '../types';
+import type { StudentRow, TypeEpr } from './types';
 import { AlertCircle } from 'lucide-react';
 
 interface Props {

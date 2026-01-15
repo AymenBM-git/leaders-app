@@ -16,7 +16,8 @@ export default function ParentForm({ onSuccess, onCancel }: ParentFormProps) {
         setIsLoading(true);
 
         const formData = new FormData(e.currentTarget);
-        const data = Object.fromEntries(formData.entries());
+        const data: any = Object.fromEntries(formData.entries());
+        data.active = formData.get("active") === "on";
 
         if (data.relation1 === data.relation2) {
             alert("Les relations doivent être différentes.");
@@ -174,6 +175,17 @@ export default function ParentForm({ onSuccess, onCancel }: ParentFormProps) {
                     </h3>
 
                     <div className="space-y-6">
+                        <div className="flex items-center justify-between">
+                            <div className="space-y-0.5">
+                                <label className="text-sm font-medium text-slate-700">Statut du compte</label>
+                                <p className="text-xs text-slate-500">Désactiver pour bloquer l'accès à l'application mobile</p>
+                            </div>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" name="active" defaultChecked className="sr-only peer" />
+                                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none ring-0 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-600"></div>
+                            </label>
+                        </div>
+
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-slate-700">Nom d'utilisateur<span className="text-red-500">*</span></label>
                             <input

@@ -1,339 +1,455 @@
 "use client"
-import React, { useState, useCallback } from 'react';
-import { Upload, Save, FolderOpen as FolderIcon, Loader2, CheckCircle, AlertTriangle } from 'lucide-react';
-import { parseEduservXML, generateEduservXML, downloadXML } from '../../../services/xmlService';
-import type { ParsedData, FileNode } from './types';
-import { HeaderInfo } from '../../../components/notes/HeaderInfo';
-import { GradesEditor } from '../../../components/notes/GradesEditor';
-import { FileTree } from '../../../components/notes/FileTree';
 
-const App: React.FC = () => {
-  // Navigation State
-  const [fileTree, setFileTree] = useState<FileNode[]>([]);
-  const [selectedFileId, setSelectedFileId] = useState<string | null>(null);
-  const [currentFileNode, setCurrentFileNode] = useState<FileNode | null>(null); // Track full node for handle access
-  const [isLoadingTree, setIsLoadingTree] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [saveSuccess, setSaveSuccess] = useState(false);
+import React, { useState, useEffect, useMemo } from 'react';
+import Link from 'next/link';
+import {
+    Search,
+    Filter,
+    GraduationCap,
+    User,
+    Calendar,
+    ChevronDown,
+    Loader2,
+    AlertCircle,
+    FileText,
+    Download
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
-  // Content State
-  const [data, setData] = useState<ParsedData | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [isSidebarOpen] = useState(true);
+interface FilterOption {
+    id: string;
+    name: string;
+}
 
-  // --- File System Logic (Modern API) ---
+interface StudentGrade {
+    id: string;
+    name: string;
+    grades: Record<string, number>;
+}
 
-  const handleOpenFolder = async () => {
-    // @ts-ignore - Check for API support
-    if (!window.showDirectoryPicker) {
-        setError("المتصفح الخاص بك لا يدعم خاصية تعديل الملفات مباشرة. يرجى استخدام Chrome أو Edge.");
-        return;
-    }
+interface ExamColumn {
+    key: string;
+    abreType: string;
+    label: string;
+    period: string;
+    subject: string;
+    subjectId: string;
+}
 
-    try {
-        // @ts-ignore
-        const dirHandle = await window.showDirectoryPicker();
-        setIsLoadingTree(true);
-        setFileTree([]);
-        setError(null);
-        setData(null);
-        setCurrentFileNode(null);
-        setSelectedFileId(null);
+interface NotesData {
+    students: StudentGrade[];
+    examTypes: ExamColumn[];
+}
 
-        // Recursive function to build tree from handles
-        const buildTree = async (handle: any, pathPrefix: string = ""): Promise<FileNode[]> => {
-            const nodes: FileNode[] = [];
-            
-            for await (const entry of handle.values()) {
-                const currentPath = pathPrefix ? `${pathPrefix}/${entry.name}` : entry.name;
-                
-                if (entry.kind === 'file') {
-                     if (entry.name.toLowerCase().endsWith('.xml')) {
-                        const file = await entry.getFile();
-                        const text = await file.text();
-                        
-                        // Extract class name
-                        const match = text.match(/<libeclass>(.*?)<\/libeclass>/);
-                        const className = match ? match[1].trim() : entry.name;
+const NotesPage = () => {
+    // Selection State
+    const [selectedAS, setSelectedAS] = useState<string>('');
+    const [selectedTeacher, setSelectedTeacher] = useState<string>('');
+    const [selectedClass, setSelectedClass] = useState<string>('');
+    const [selectedPeriod, setSelectedPeriod] = useState<string>('');
+    const [selectedSubject, setSelectedSubject] = useState<string>('');
 
-                        nodes.push({
-                            id: currentPath,
-                            name: entry.name,
-                            displayName: className,
-                            type: 'file',
-                            path: currentPath,
-                            handle: entry,
-                            fileObject: file
-                        });
-                     }
-                } else if (entry.kind === 'directory') {
-                    const children = await buildTree(entry, currentPath);
-                    // Only add folder if it has content (optional, keeping it clean)
-                    if (children.length > 0) {
-                        nodes.push({
-                            id: currentPath,
-                            name: entry.name,
-                            type: 'folder',
-                            path: currentPath,
-                            children: children,
-                            handle: entry
-                        });
-                    }
+    // Data State
+    const [filters, setFilters] = useState<{
+        academicYears: string[];
+        teachers: FilterOption[];
+        classes: FilterOption[];
+        periods: string[];
+        subjects: FilterOption[];
+    }>({
+        academicYears: [],
+        teachers: [],
+        classes: [],
+        periods: [],
+        subjects: []
+    });
+
+    const [data, setData] = useState<NotesData | null>(null);
+    const [loadingFilters, setLoadingFilters] = useState(true);
+    const [loadingData, setLoadingData] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    // Initial Load: Filters
+    useEffect(() => {
+        const fetchFilters = async () => {
+            try {
+                const res = await fetch('/api/notes/filters');
+                if (!res.ok) throw new Error('Failed to load filters');
+                const filterData = await res.json();
+                setFilters(filterData);
+
+                // Set default AS
+                const now = new Date();
+                const year = now.getFullYear();
+                const currentAS = now.getMonth() >= 6 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
+
+                if (filterData.academicYears.includes(currentAS)) {
+                    setSelectedAS(currentAS);
+                } else if (filterData.academicYears.length > 0) {
+                    setSelectedAS(filterData.academicYears[0]);
                 }
+            } catch (err: any) {
+                setError(err.message);
+            } finally {
+                setLoadingFilters(false);
             }
+        };
+        fetchFilters();
+    }, []);
 
-             // Sort: Folders first, then files by display name
-             return nodes.sort((a, b) => {
-                if (a.type === b.type) {
-                    const nameA = a.displayName || a.name;
-                    const nameB = b.displayName || b.name;
-                    return nameA.localeCompare(nameB);
+    const isSelectionComplete = selectedAS && selectedTeacher && selectedClass && selectedPeriod && selectedSubject;
+
+    // Load Data when selection changes
+    useEffect(() => {
+        if (!isSelectionComplete) {
+            setData(null);
+            return;
+        }
+
+        const fetchNotes = async () => {
+            setLoadingData(true);
+            setError(null);
+            try {
+                const params = {
+                    as: selectedAS,
+                    iuense: selectedTeacher,
+                    codeclass: selectedClass,
+                    period: selectedPeriod,
+                    subject: selectedSubject
+                };
+
+                const query = new URLSearchParams(params).toString();
+                const res = await fetch(`/api/notes?${query}`);
+                if (!res.ok) throw new Error('Failed to load notes');
+                const notesData = await res.json();
+                setData(notesData);
+            } catch (err: any) {
+                setError(err.message);
+            } finally {
+                setLoadingData(false);
+            }
+        };
+        fetchNotes();
+    }, [selectedAS, selectedTeacher, selectedClass, selectedPeriod, selectedSubject]);
+
+    // Update subjects when class/teacher/AS changes
+    useEffect(() => {
+        if (!selectedAS || !selectedTeacher || !selectedClass) return;
+
+        const refreshSubjects = async () => {
+            try {
+                const query = new URLSearchParams({
+                    as: selectedAS,
+                    iuense: selectedTeacher,
+                    codeclass: selectedClass
+                }).toString();
+
+                const res = await fetch(`/api/notes/filters?${query}`);
+                if (!res.ok) return;
+                const newFilters = await res.json();
+
+                setFilters(prev => ({
+                    ...prev,
+                    subjects: newFilters.subjects,
+                    periods: newFilters.periods
+                }));
+
+                // Clear dependent selections if they are no longer valid
+                if (!newFilters.subjects.some((s: any) => s.id === selectedSubject)) {
+                    setSelectedSubject('');
                 }
-                return a.type === 'folder' ? -1 : 1;
-              });
+                if (!newFilters.periods.includes(selectedPeriod)) {
+                    setSelectedPeriod('');
+                }
+            } catch (err) {
+                console.error("Error refreshing subjects:", err);
+            }
         };
 
-        const tree = await buildTree(dirHandle);
-        setFileTree(tree);
+        refreshSubjects();
+    }, [selectedAS, selectedTeacher, selectedClass]);
 
-    } catch (err: any) {
-        if (err.name !== 'AbortError') {
-            console.error(err);
-            setError("حدث خطأ أثناء قراءة المجلد.");
-        }
-    } finally {
-        setIsLoadingTree(false);
-    }
-  };
+    // Group columns by Period then Subject for multi-level headers
+    const groupedHeaders = useMemo(() => {
+        if (!data) return [];
 
-  const loadFile = async (fileNode: FileNode) => {
-    setError(null);
-    setSaveSuccess(false);
-    setSelectedFileId(fileNode.id);
+        const periodsMap = new Map<string, { period: string, subject: string, exams: ExamColumn[] }[]>();
 
-    try {
-        let file = fileNode.fileObject;
+        data.examTypes.forEach(exam => {
+            if (!periodsMap.has(exam.period)) {
+                periodsMap.set(exam.period, []);
+            }
+            const subjects = periodsMap.get(exam.period)!;
+            let subjectGroup = subjects.find(s => s.subject === exam.subject);
+            if (!subjectGroup) {
+                subjectGroup = { period: exam.period, subject: exam.subject, exams: [] };
+                subjects.push(subjectGroup);
+            }
+            subjectGroup.exams.push(exam);
+        });
 
-        // If using File System Access API, get the fresh file reference from disk
-        // This ensures that if we saved changes, we load the updated content
-        if (fileNode.handle) {
-            file = await fileNode.handle.getFile();
-        }
+        return Array.from(periodsMap.entries()).map(([period, subjects]) => ({
+            period,
+            subjects,
+            count: subjects.reduce((acc, s) => acc + s.exams.length, 0)
+        }));
+    }, [data]);
 
-        if (!file) return;
+    return (
+        <div className="min-h-screen bg-[#f8fafc] p-4 md:p-8 space-y-8" dir="rtl">
+            {/* Header section */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div className="space-y-2">
+                    <h1 className="text-4xl font-black text-slate-800 tracking-tight flex items-center gap-3">
+                        <FileText className="w-10 h-10 text-indigo-600" />
+                        دفتر العلامات الموحد
+                    </h1>
+                    <p className="text-slate-500 font-medium">عرض شامل لنتائج الطلاب عبر الفترات والمواد المختلفة.</p>
+                </div>
 
-        // Update current tracking node with the fresh file object
-        setCurrentFileNode({ ...fileNode, fileObject: file });
-
-        const text = await file.text();
-        const parsed = parseEduservXML(text);
-        setData(parsed);
-    } catch (err) {
-        console.error(err);
-        setError(`خطأ في قراءة الملف: ${fileNode.name}`);
-        setData(null);
-    }
-  };
-
-  // --- Editor Logic ---
-
-  const handleUpdateStudent = useCallback((studentId: string, field: string, value: string, gradeKey?: string) => {
-    setData((prev) => {
-      if (!prev) return null;
-
-      const updatedStudents = prev.students.map((student) => {
-        if (student.id !== studentId) return student;
-
-        if (field === 'observation') {
-          return { ...student, observation: value };
-        } else if (field === 'grade' && gradeKey) {
-          return {
-            ...student,
-            grades: { ...student.grades, [gradeKey]: value }
-          };
-        }
-        return student;
-      });
-
-      return { ...prev, students: updatedStudents };
-    });
-    setSaveSuccess(false); // Reset success state on edit
-  }, []);
-
-  const handleSave = async () => {
-    if (!data || !currentFileNode) return;
-    
-    setIsSaving(true);
-    setSaveSuccess(false);
-    setError(null);
-
-    try {
-      const xmlString = generateEduservXML(data);
-      
-      if (currentFileNode.handle) {
-          // Write directly to file handle
-          const writable = await currentFileNode.handle.createWritable();
-          await writable.write(xmlString);
-          await writable.close();
-          setSaveSuccess(true);
-          
-          // Update the fileObject in memory so parsing again works without reload
-          // (Though we already have the data in state, this is for consistency)
-          const newFile = await currentFileNode.handle.getFile();
-          setCurrentFileNode({ ...currentFileNode, fileObject: newFile });
-
-      } else {
-          // Fallback if no handle (should not happen in this flow)
-          downloadXML(xmlString, currentFileNode.name);
-      }
-    } catch (err) {
-      console.error(err);
-      setError("خطأ أثناء حفظ الملف. تأكد من أن الملف غير مفتوح في برنامج آخر.");
-    } finally {
-      setIsSaving(false);
-      // Hide success message after 3 seconds
-      setTimeout(() => setSaveSuccess(false), 3000);
-    }
-  };
-
-  return (
-    <div className="h-screen flex flex-col bg-slate-50 font-sans text-slate-800 overflow-hidden">
-      
-      {/* Top Bar */}
-      <header className="bg-slate-900 text-white shadow-md p-3 flex-shrink-0 z-20">
-        <div className="flex justify-between items-center px-4" dir="rtl">
-          <div className="flex items-center gap-3">
-             <div className="bg-blue-600 p-1.5 rounded-lg">
-               <FolderIcon size={20} className="text-white" />
-             </div>
-             <div>
-                <h1 className="text-lg font-bold">محرر Eduserv</h1>
-             </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button 
-                onClick={handleOpenFolder}
-                className="bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 rounded-md shadow flex items-center gap-2 transition-colors text-sm"
-                disabled={isLoadingTree}
-            >
-                {isLoadingTree ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
-                <span>{isLoadingTree ? 'جاري التحميل...' : 'فتح مجلد'}</span>
-            </button>
-            
-            {data && (
-                <button 
-                    onClick={handleSave}
-                    disabled={isSaving}
-                    className={`
-                        px-3 py-1.5 rounded-md shadow flex items-center gap-2 transition-colors text-sm min-w-[120px] justify-center
-                        ${saveSuccess ? 'bg-green-600 hover:bg-green-500' : 'bg-blue-600 hover:bg-blue-500'}
-                        ${isSaving ? 'opacity-70 cursor-wait' : ''}
-                        text-white
-                    `}
+                <Link
+                    href="/notes/saisie"
+                    className="flex items-center gap-2 bg-white hover:bg-slate-50 text-indigo-600 border-2 border-indigo-100 px-6 py-3 rounded-2xl font-bold shadow-sm transition-all hover:shadow-md active:scale-95"
                 >
-                    {isSaving ? <Loader2 size={16} className="animate-spin" /> : (saveSuccess ? <CheckCircle size={16} /> : <Save size={16} />)}
-                    <span>{isSaving ? 'جاري الحفظ...' : (saveSuccess ? 'تم الحفظ' : 'حفظ التعديلات')}</span>
-                </button>
-            )}
-          </div>
-        </div>
-      </header>
+                    <FileText className="w-5 h-5" />
+                    <span>سجل الملاحظات</span>
+                </Link>
+            </div>
 
-      {/* Main Layout - Split View */}
-      <div className="flex flex-1 overflow-hidden flex-row-reverse">
-        
-        {/* Left Main Content (Editor) */}
-        <main className="flex-1 overflow-hidden relative flex flex-col bg-slate-50">
-            
-            {/* Error Message */}
-            {error && (
-                <div className="absolute top-4 left-4 right-4 z-50 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded shadow-lg animate-fade-in flex items-start gap-3" dir="rtl">
-                    <AlertTriangle size={24} className="mt-0.5" />
-                    <div>
-                        <p className="font-bold">تنبيه</p>
-                        <p>{error}</p>
+            {/* Filter Section */}
+            <div className="bg-white/80 backdrop-blur-md rounded-3xl shadow-xl border border-white/40 p-6 md:p-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+                    {/* Academic Year Select */}
+                    <div className="space-y-3">
+                        <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                            <Calendar className="w-4 h-4 text-indigo-500" />
+                            السنة الدراسية
+                        </label>
+                        <div className="relative group">
+                            <select
+                                value={selectedAS}
+                                onChange={(e) => setSelectedAS(e.target.value)}
+                                className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3.5 outline-none focus:border-indigo-500/30 focus:ring-4 focus:ring-indigo-500/5 transition-all appearance-none font-bold text-slate-700 disabled:opacity-50"
+                                disabled={loadingFilters}
+                            >
+                                <option value="" disabled>اختر السنة...</option>
+                                {filters.academicYears.map(as => (
+                                    <option key={as} value={as}>{as}</option>
+                                ))}
+                            </select>
+                            <ChevronDown className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none group-focus-within:text-indigo-500 transition-colors" />
+                        </div>
                     </div>
-                    <button onClick={() => setError(null)} className="mr-auto text-red-500 hover:text-red-700">✕</button>
-                </div>
-            )}
 
-            {/* Empty State */}
-            {!data && !error && (
-                <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-4">
-                    <div className="bg-slate-200 p-6 rounded-full">
-                        <a href="#" onClick={handleOpenFolder}>
-                            <FolderIcon size={48} className="opacity-40" />
-                        </a>
+                    {/* Teacher Select */}
+                    <div className="space-y-3">
+                        <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                            <User className="w-4 h-4 text-indigo-500" />
+                            الأستاذ
+                        </label>
+                        <div className="relative group">
+                            <select
+                                value={selectedTeacher}
+                                onChange={(e) => setSelectedTeacher(e.target.value)}
+                                className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3.5 outline-none focus:border-indigo-500/30 focus:ring-4 focus:ring-indigo-500/5 transition-all appearance-none font-bold text-slate-700"
+                            >
+                                <option value="" disabled>اختر الأستاذ...</option>
+                                {filters.teachers.map(t => (
+                                    <option key={t.id} value={t.id}>{t.name}</option>
+                                ))}
+                            </select>
+                            <ChevronDown className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none group-focus-within:text-indigo-500 transition-colors" />
+                        </div>
                     </div>
-                    <div className="text-center" dir="rtl">
-                        <p className="text-lg font-medium text-slate-600">الرجاء اختيار ملف من القائمة اليمنى</p>
-                        <p className="text-sm mt-1">يجب فتح المجلد أولاً لتتمكن من التنقل بين الملفات وحفظها</p>
-                    </div>
-                </div>
-            )}
 
-            {/* Editor Content */}
-            {data && (
-                <div className="flex-1 overflow-y-auto p-4 md:p-6 scrollbar-thin">
-                    <div className="max-w-6xl mx-auto space-y-6">
-                        <HeaderInfo data={data.header} />
-                        <div className="h-[calc(100vh-320px)] min-h-[400px]">
-                            <GradesEditor 
-                                students={data.students} 
-                                examTypes={data.examTypes} 
-                                onUpdateStudent={handleUpdateStudent} 
-                            />
+                    {/* Class Select */}
+                    <div className="space-y-3">
+                        <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                            <GraduationCap className="w-4 h-4 text-indigo-500" />
+                            القسم
+                        </label>
+                        <div className="relative group">
+                            <select
+                                value={selectedClass}
+                                onChange={(e) => setSelectedClass(e.target.value)}
+                                className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3.5 outline-none focus:border-indigo-500/30 focus:ring-4 focus:ring-indigo-500/5 transition-all appearance-none font-bold text-slate-700"
+                            >
+                                <option value="" disabled>اختر القسم...</option>
+                                {filters.classes.map(c => (
+                                    <option key={c.id} value={c.id}>{c.name}</option>
+                                ))}
+                            </select>
+                            <ChevronDown className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none group-focus-within:text-indigo-500 transition-colors" />
+                        </div>
+                    </div>
+
+                    {/* Period Select */}
+                    <div className="space-y-3">
+                        <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                            <Calendar className="w-4 h-4 text-indigo-500" />
+                            الفترة
+                        </label>
+                        <div className="relative group">
+                            <select
+                                value={selectedPeriod}
+                                onChange={(e) => setSelectedPeriod(e.target.value)}
+                                className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3.5 outline-none focus:border-indigo-500/30 focus:ring-4 focus:ring-indigo-500/5 transition-all appearance-none font-bold text-slate-700"
+                            >
+                                <option value="">اختر الفترة ...</option>
+                                {filters.periods.map(p => (
+                                    <option key={p} value={p}>{p}</option>
+                                ))}
+                            </select>
+                            <ChevronDown className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none group-focus-within:text-indigo-500 transition-colors" />
+                        </div>
+                    </div>
+
+                    {/* Subject Select */}
+                    <div className="space-y-3">
+                        <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                            <FileText className="w-4 h-4 text-indigo-500" />
+                            المادة
+                        </label>
+                        <div className="relative group">
+                            <select
+                                value={selectedSubject}
+                                onChange={(e) => setSelectedSubject(e.target.value)}
+                                className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3.5 outline-none focus:border-indigo-500/30 focus:ring-4 focus:ring-indigo-500/5 transition-all appearance-none font-bold text-slate-700"
+                            >
+                                <option value="">اختر المادة ...</option>
+                                {filters.subjects.map(s => (
+                                    <option key={s.id} value={s.id}>{s.name}</option>
+                                ))}
+                            </select>
+                            <ChevronDown className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none group-focus-within:text-indigo-500 transition-colors" />
                         </div>
                     </div>
                 </div>
-            )}
-        </main>
-
-        {/* Right Sidebar (Tree) */}
-        <aside 
-            className={`
-                bg-white border-l border-slate-200 flex flex-col transition-all duration-300
-                ${isSidebarOpen ? 'w-72' : 'w-0 opacity-0 overflow-hidden'}
-            `}
-            dir="rtl"
-        >
-            <div className="p-3 bg-slate-100 border-b border-slate-200 font-bold text-slate-700 text-sm flex justify-between items-center">
-                <span>ملفات المجلد</span>
-                <span className="text-xs bg-slate-200 px-2 py-0.5 rounded-full text-slate-500">
-                    {fileTree.length > 0 ? 'جاهز' : 'فارغ'}
-                </span>
             </div>
-            
-            <div className="flex-1 overflow-y-auto p-2 scrollbar-thin">
-                {isLoadingTree && (
-                    <div className="flex flex-col items-center justify-center pt-10 text-slate-400 gap-2">
-                        <Loader2 size={24} className="animate-spin text-blue-500" />
-                        <span className="text-sm">جاري قراءة الملفات...</span>
+
+            {/* Error Message */}
+            <AnimatePresence>
+                {error && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        className="bg-red-50 border-2 border-red-100 p-4 rounded-2xl flex items-center gap-3 text-red-600 font-bold shadow-sm"
+                    >
+                        <AlertCircle className="w-5 h-5" />
+                        {error}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Content Section */}
+            <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/50 border border-slate-100 overflow-hidden min-h-[400px] flex flex-col">
+                {loadingData ? (
+                    <div className="flex-1 flex flex-col items-center justify-center p-12 gap-4">
+                        <div className="relative">
+                            <div className="w-16 h-16 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin"></div>
+                            <Loader2 className="w-6 h-6 text-indigo-600 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse" />
+                        </div>
+                        <p className="text-slate-400 font-bold animate-pulse text-lg">جاري تحميل النتائج...</p>
+                    </div>
+                ) : !isSelectionComplete ? (
+                    <div className="flex-1 flex flex-col items-center justify-center p-12 gap-8 text-center bg-white/40 backdrop-blur-sm rounded-[3rem] border border-white/60">
+                        <div className="relative">
+                            <div className="w-24 h-24 bg-indigo-50 rounded-full flex items-center justify-center">
+                                <Filter className="w-12 h-12 text-indigo-400 opacity-60" />
+                            </div>
+                            <div className="absolute -top-2 -right-2 bg-amber-400 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-lg shadow-amber-100">!</div>
+                        </div>
+                        <div className="space-y-2">
+                            <p className="text-2xl font-black text-slate-800 tracking-tight">يرجى استكمال الاختيارات</p>
+                            <p className="text-slate-500 font-medium max-w-sm">الرجاء اختيار السنة، الأستاذ، القسم، الفترة والمادة لعرض النتائج.</p>
+                        </div>
+                    </div>
+                ) : data ? (
+                    <div className="flex-1 overflow-x-auto rounded-[2rem] border border-slate-200/60 shadow-2xl shadow-slate-200/40 relative group/table bg-white">
+                        <table className="w-full text-right border-collapse" dir="rtl">
+                            <thead className="sticky top-0 z-20 shadow-sm">
+                                {/* Level 1: Periods */}
+                                <tr className="bg-slate-900 text-white divide-x divide-x-reverse divide-slate-800">
+                                    <th rowSpan={3} className="px-8 py-5 text-right font-black text-xl sticky right-0 bg-slate-900 z-30 border-l border-slate-800">
+                                        الاسم و اللقب
+                                    </th>
+                                    {groupedHeaders.map(p => (
+                                        <th key={p.period} colSpan={p.count} className="px-6 py-4 text-center border-r border-slate-800 text-indigo-300 uppercase tracking-widest font-black text-xs">
+                                            {p.period}
+                                        </th>
+                                    ))}
+                                </tr>
+                                {/* Level 2: Subjects */}
+                                <tr className="bg-indigo-600 text-white divide-x divide-x-reverse divide-indigo-500">
+                                    {/* Name column spanned by Level 1 TH */}
+                                    {groupedHeaders.flatMap(p => p.subjects).map(s => (
+                                        <th key={`${s.period}-${s.subject}`} colSpan={s.exams.length} className="px-6 py-3 text-center border-r border-indigo-500 font-bold text-sm">
+                                            {s.subject}
+                                        </th>
+                                    ))}
+                                </tr>
+                                {/* Level 3: Exam Types */}
+                                <tr className="bg-[#f8fafc] border-b border-slate-200 divide-x divide-x-reverse divide-slate-200">
+                                    {data.examTypes.map(type => (
+                                        <th key={type.key} className="px-6 py-4 text-center border-r border-slate-100 min-w-[140px]">
+                                            <div className="flex flex-col items-center gap-0.5">
+                                                <span className="text-slate-800 font-bold text-base leading-tight">{type.abreType}.</span>
+                                                <span className="text-slate-400 font-medium text-[10px] leading-tight whitespace-nowrap overflow-hidden text-ellipsis max-w-[120px]">{type.label}</span>
+                                            </div>
+                                        </th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100">
+                                {data.students.map((student, idx) => (
+                                    <motion.tr
+                                        initial={{ opacity: 0, x: 20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: idx * 0.03 }}
+                                        key={student.id}
+                                        className="hover:bg-slate-50/50 transition-colors group"
+                                    >
+                                        <td className="px-8 py-5 sticky right-0 bg-white group-hover:bg-slate-50/50 z-10 shadow-sm font-bold text-slate-800 text-lg border-l border-slate-100">
+                                            {student.name}
+                                        </td>
+                                        {data.examTypes.map(type => (
+                                            <td key={type.key} className="px-6 py-5 text-center border-r border-slate-100">
+                                                <div className="flex justify-center">
+                                                    <span className={`
+                                                        inline-flex items-center justify-center min-w-[65px] h-[32px] px-2 rounded-lg font-bold text-sm
+                                                        ${student.grades[type.key] !== null && student.grades[type.key] !== undefined
+                                                            ? Number(student.grades[type.key]) >= 10
+                                                                ? 'bg-emerald-50 text-emerald-600 border border-emerald-200'
+                                                                : 'bg-rose-50 text-rose-600 border border-rose-200'
+                                                            : 'bg-slate-50 text-slate-200 border border-slate-100'}
+                                                    `}>
+                                                        {student.grades[type.key] !== null && student.grades[type.key] !== undefined
+                                                            ? Number(student.grades[type.key]).toFixed(2).padStart(5, '0')
+                                                            : '--.--'}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                        ))}
+                                    </motion.tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                ) : (
+                    <div className="flex-1 flex flex-col items-center justify-center p-12 gap-6 bg-white/40 backdrop-blur-sm rounded-[3rem] border border-white/60">
+                        <div className="bg-amber-50 p-8 rounded-full">
+                            <AlertCircle className="w-16 h-16 text-amber-400" />
+                        </div>
+                        <div className="space-y-1 text-center">
+                            <p className="text-xl font-black text-slate-400">لا توجد نتائج</p>
+                            <p className="text-slate-400 font-medium text-sm">لم يتم العثور على ملاحظات مسجلة لهذا الاختيار.</p>
+                        </div>
                     </div>
                 )}
-                
-                {!isLoadingTree && fileTree.length === 0 && (
-                    <div className="text-center mt-10 text-slate-400 text-sm px-4">
-                        <p>اضغط على "فتح مجلد" لاختيار مجلد العمل.</p>
-                        <p className="text-xs text-slate-400 mt-2">ملاحظة: يتطلب متصفح كروم أو إيدج لدعم الحفظ المباشر.</p>
-                    </div>
-                )}
-
-                {!isLoadingTree && fileTree.length > 0 && (
-                    <FileTree 
-                        nodes={fileTree} 
-                        selectedFileId={selectedFileId} 
-                        onSelectFile={loadFile} 
-                    />
-                )}
             </div>
-        </aside>
-
-      </div>
-
-    </div>
-  );
+        </div>
+    );
 };
 
-export default App;
+export default NotesPage;

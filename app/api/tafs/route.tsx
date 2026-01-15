@@ -1,10 +1,11 @@
 import { cookies } from 'next/headers';
 import prisma from '../../../lib/prisma';
 import { NextResponse } from 'next/server'
+import { notifyParentsOfClass } from '../../../lib/notifications';
 
 export async function GET() {
 
-  try{  
+    try {
         const tafs = await prisma.taf.findMany({
             orderBy: {
                 dateTaf: 'desc'
@@ -15,7 +16,7 @@ export async function GET() {
             }
         })
         return NextResponse.json(tafs)
-        } catch (error) {
+    } catch (error) {
         console.error(error);
         return NextResponse.json({ error: 'Failed to fetch taf' }, { status: 500 });
     }
@@ -31,22 +32,32 @@ export async function POST(request: Request) {
             data: {
                 dateTaf: new Date(dateTaf),
                 type,
-                subjectId:Number(subjectId)||null,
+                subjectId: Number(subjectId) || null,
                 description,
-                classId:classId? Number(classId) : null
+                classId: classId ? Number(classId) : null
             }
         })
 
+        // Send notification to parents of the class
+        if (classId) {
+            await notifyParentsOfClass(
+                Number(classId),
+                "Nouveau TAF/Devoir",
+                `Un nouveau devoir (${type}) a été ajouté : ${description}`,
+                "taf"
+            );
+        }
+
         // 1. Log Activity
-            const cookiesStore = cookies();
-            const nameuser= String((await cookiesStore).get('user-name')?.value);
-            await prisma.activity.create({
-                data: {
-                    nameUser: nameuser,
-                    description: `a créé le TAF/Devoir: ${taf.description}.`,
-                }
-            });
-            
+        const cookiesStore = cookies();
+        const nameuser = String((await cookiesStore).get('user-name')?.value);
+        await prisma.activity.create({
+            data: {
+                nameUser: nameuser,
+                description: `a créé le TAF/Devoir: ${taf.description}.`,
+            }
+        });
+
         return NextResponse.json(taf)
     } catch (error) {
         console.error("Error creating taf:", error)
