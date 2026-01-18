@@ -15,7 +15,7 @@ import ParentForm from "@/components/forms/ParentForm";
 
 interface Parent {
     id: number;
-    name: string;
+    name1: string;
 }
 
 interface Class {
@@ -155,7 +155,7 @@ export default function NewStudentPage() {
                                 >
                                     <option value="">Sélectionner un parent...</option>
                                     {parents.map((p) => (
-                                        <option key={p.id} value={p.id}>{p.name}</option>
+                                        <option key={p.id} value={p.id}>{p.name1}</option>
                                     ))}
                                 </select>
                             </div>

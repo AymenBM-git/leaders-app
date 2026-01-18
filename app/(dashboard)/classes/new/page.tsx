@@ -85,7 +85,6 @@ export default function NewClassPage() {
                         <input
                             type="text"
                             name="codeclass"
-                            required
                             placeholder="Ex: 1"
                             className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                         />
