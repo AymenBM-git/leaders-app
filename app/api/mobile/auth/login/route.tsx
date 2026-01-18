@@ -19,7 +19,7 @@ export async function POST(request: Request) {
         }
 
         if (parent.active === false) {
-            return NextResponse.json({ error: "Account deactivated" }, { status: 403 });
+            return NextResponse.json({ error: "Votre compte est désactivé. Veuillez contacter l'administration." }, { status: 403 });
         }
 
         const passwordMatch = parent.password ? await bcrypt.compare(password, parent.password) : false;
