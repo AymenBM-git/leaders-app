@@ -145,7 +145,7 @@ export default function SettingsPage() {
                             <tr>
                                 <th className="px-6 py-4 font-semibold text-slate-900">Identifiant</th>
                                 <th className="px-6 py-4 font-semibold text-slate-900">Rôle</th>
-                                <th className="px-6 py-4 font-semibold text-slate-900">Actif</th>
+                                {/*<th className="px-6 py-4 font-semibold text-slate-900">Actif</th>*/}
                                 <th className="px-6 py-4 font-semibold text-slate-900 text-right">Actions</th>
                             </tr>
                         </thead>
@@ -177,7 +177,7 @@ export default function SettingsPage() {
                                                 {user.role}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 font-medium text-slate-900">{user.active ? "Oui" : "Non"}</td>
+                                        {/*<td className="px-6 py-4 font-medium text-slate-900">{user.active ? "Oui" : "Non"}</td>*/}
                                         <td className="px-6 py-4 text-right">
                                             <div className="flex items-center justify-end gap-2">
                                                 <button
@@ -275,6 +275,7 @@ export default function SettingsPage() {
                                             <option value="prof">Enseignant</option>
                                         </select>
                                     </div>
+                                    {/*
                                     <div className="space-y-2">
                                         <label className="text-sm font-medium text-slate-700">Actif</label>
                                         <input type="checkbox"
@@ -284,7 +285,7 @@ export default function SettingsPage() {
                                         />
 
                                     </div>
-
+                                    */}
                                     <div className="pt-4 flex items-center justify-end gap-3">
                                         <button
                                             type="button"

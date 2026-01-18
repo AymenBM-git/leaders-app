@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '../../../../../lib/prisma';
+import { isParentActive } from '../../../../../lib/mobile-auth';
 
 export async function GET(request: Request) {
     try {
@@ -8,6 +9,11 @@ export async function GET(request: Request) {
 
         if (!parentId) {
             return NextResponse.json({ error: "parentId is required" }, { status: 400 });
+        }
+
+        const isActive = await isParentActive(parentId);
+        if (!isActive) {
+            return NextResponse.json({ error: "Account deactivated" }, { status: 403 });
         }
 
         const students = await prisma.student.findMany({

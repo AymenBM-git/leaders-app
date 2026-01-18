@@ -420,7 +420,7 @@ const NotesPage = () => {
                                                         inline-flex items-center justify-center min-w-[65px] h-[32px] px-2 rounded-lg font-bold text-sm
                                                         ${student.grades[type.key] !== null && student.grades[type.key] !== undefined
                                                             ? Number(student.grades[type.key]) >= 10
-                                                                ? 'bg-emerald-50 text-emerald-600 border border-emerald-200'
+                                                                ? 'bg-blue-50 text-600 border border-blue-200'
                                                                 : 'bg-rose-50 text-rose-600 border border-rose-200'
                                                             : 'bg-slate-50 text-slate-200 border border-slate-100'}
                                                     `}>
