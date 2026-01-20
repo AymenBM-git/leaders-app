@@ -373,7 +373,6 @@ export default function PlaningPage() {
                                 <label className="text-sm font-semibold text-slate-700">Contenu</label>
                                 <textarea
                                     name="description"
-                                    required
                                     rows={4}
                                     placeholder="Détails du contenu à enseigner..."
                                     value={formData.description}
