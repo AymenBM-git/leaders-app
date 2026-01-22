@@ -425,9 +425,10 @@ export default function PlaningPage() {
                             <BookOpen className="w-6 h-6 text-indigo-500" />
                             Répartitions Enregistrées
                         </h2>
+                        {/** 
                         <span className="px-4 py-1.5 bg-indigo-50 text-indigo-700 text-sm font-bold rounded-full">
                             {planings.length} séance{planings.length > 1 ? 's' : ''}
-                        </span>
+                        </span>*/}
                     </div>
 
                     <AnimatePresence mode="popLayout">

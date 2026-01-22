@@ -1,6 +1,6 @@
 "use client";
 
-import { Users, UserCheck, GraduationCap, School, Loader2} from "lucide-react";
+import { Users, UserCheck, GraduationCap, School, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
@@ -77,13 +77,13 @@ export default function DashboardPage() {
             .split("; ")
             .find(row => row.startsWith(name + "="))
             ?.split("=")[1] ?? null;
-        };
+    };
 
     const [role, setRole] = useState('');
 
     useEffect(() => {
-            setRole(getCookie("user-role") ?? "N/A");
-        }, []);
+        setRole(getCookie("user-role") ?? "N/A");
+    }, []);
     let isReadOnly = role !== 'admin';
 
     const stats = [
@@ -174,29 +174,29 @@ export default function DashboardPage() {
                         <Link href="/activities" className="hover:text-indigo-500 transition-colors">Activités Récentes</Link>
                     </h3>
                     <div className="space-y-4">
-                    {activities.map((i) => (
-                        <div key={i.id} className="flex items-center gap-4 p-3 hover:bg-slate-50 rounded-xl transition-colors">
-                            <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold">
-                                {i.nameUser.charAt(0).toUpperCase()}
+                        {activities.map((i) => (
+                            <div key={i.id} className="flex items-center gap-4 p-3 hover:bg-slate-50 rounded-xl transition-colors">
+                                <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold">
+                                    {i.nameUser.charAt(0).toUpperCase()}
+                                </div>
+                                <div>
+                                    <p className="text-sm font-medium text-slate-800">{i.nameUser} {i.description}</p>
+                                    <p className="text-xs text-slate-400">Le {new Date(i.dateActivity).toLocaleDateString("fr-FR")} à {new Date(i.dateActivity).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}</p>
+                                </div>
                             </div>
-                            <div>
-                                <p className="text-sm font-medium text-slate-800">{i.nameUser} {i.description}</p>
-                                <p className="text-xs text-slate-400">Le {new Date(i.dateActivity).toLocaleDateString("fr-FR")} à {new Date(i.dateActivity).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}</p>
-                            </div>
-                        </div>          
-                    ))}
-                    {activities.length === 0 && (
-                        <p className="text-sm text-slate-500">Aucune activité récente disponible.</p>
-                    )}
+                        ))}
+                        {activities.length === 0 && (
+                            <p className="text-sm text-slate-500">Aucune activité récente disponible.</p>
+                        )}
                     </div>
                 </div>}
 
                 <div className="bg-gradient-to-br from-indigo-500 to-violet-600 p-6 rounded-2xl shadow-lg text-white relative overflow-hidden">
                     <div className="relative z-10">
                         <h3 className="text-xl font-bold mb-2">{
-                    events?.[0]?.name || "Pas d'événement programmé prochainement"}</h3>
+                            events?.[0]?.name || "Pas d'événement programmé prochainement"}</h3>
                         <p className="text-indigo-100 mb-6 max-w-sm">
-                            {`${events?.[0]?.description} prévu le : ${new Date(events?.[0]?.dateEvent).toLocaleDateString("fr-FR")}` || "Veuillez consulter le planning des événements pour plus de détails."}
+                            {events?.[0] && `${events?.[0]?.description} prévu le : ${new Date(events?.[0]?.dateEvent).toLocaleDateString("fr-FR")}` || "Veuillez consulter le planning des événements pour plus de détails."}
                         </p>
                         <button className="bg-white text-indigo-600 px-4 py-2 rounded-lg font-medium text-sm hover:bg-indigo-50 transition-colors">
                             <Link href="/events">Voir le planning</Link>

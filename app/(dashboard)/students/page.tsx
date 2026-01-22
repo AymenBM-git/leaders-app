@@ -180,7 +180,7 @@ export default function StudentsPage() {
                                         </td>
                                         <td className="p-4">
                                             {parent ? (
-                                                <Link href={!isReadOnly ? `/parents?highlight=${parent.id}` : `/parents/${parent.id}`} className="flex items-center gap-2 text-slate-600 hover:text-indigo-600 transition-colors group-hover/parent">
+                                                <Link href={!isReadOnly ? `/parents?highlight=${parent.id}` : '#'} className="flex items-center gap-2 text-slate-600 hover:text-indigo-600 transition-colors group-hover/parent">
                                                     <div className="p-1.5 bg-slate-100 rounded-full group-hover/parent:bg-indigo-100 transition-colors">
                                                         <User className="w-3.5 h-3.5" />
                                                     </div>

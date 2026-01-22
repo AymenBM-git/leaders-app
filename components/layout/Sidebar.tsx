@@ -37,99 +37,99 @@ const routes = [
         icon: LayoutDashboard,
         href: "/dashboard",
         color: "text-sky-500",
-        user: ["admin", "prof" ]
+        user: ["admin", "prof"]
     },
     {
         label: "Evénements",
         icon: CalendarArrowDown,
         href: "/events",
         color: "text-yellow-500",
-        user: ["admin", "prof" ]
+        user: ["admin", "prof"]
     },
     {
         label: "Élèves",
         icon: GraduationCap,
         href: "/students",
         color: "text-violet-500",
-        user: ["admin", "prof" ]
+        user: ["admin", "prof"]
     },
     {
         label: "Parents",
         icon: Users,
         href: "/parents",
         color: "text-pink-500",
-        user: ["admin" ]
+        user: ["admin"]
     },
     {
         label: "Paiements",
         icon: CreditCard,
         href: "/payments",
         color: "text-blue-500",
-        user: ["admin" ]
+        user: ["admin"]
     },
     {
         label: "Enseignants",
         icon: UserCheck,
         href: "/teachers",
         color: "text-orange-500",
-        user: ["admin", "prof" ]
+        user: ["admin", "prof"]
     },
     {
         label: "Absences",
         icon: BookA,
         href: "/absences",
         color: "text-red-500",
-        user: ["admin", "prof" ]
+        user: ["admin", "prof"]
     },
     {
         label: "Répartition Annuelle",
         icon: LibraryBig,
         href: "/planing",
         color: "text-green-500",
-        user: ["admin", "prof" ]
+        user: ["admin", "prof"]
     },
     {
         label: "TAF/Devoir",
         icon: NotebookText,
         href: "/tafs",
         color: "text-purple-500",
-        user: ["admin", "prof" ]
+        user: ["admin", "prof"]
     },
     {
         label: "Notes",
         icon: NotebookPen,
         href: "/notes",
         color: "text-yellow-500",
-        user: ["admin", "prof" ]
+        user: ["admin"]
     },
     {
         label: "Classes",
         icon: School,
         href: "/classes",
         color: "text-emerald-500",
-        user: ["admin", "prof" ]
+        user: ["admin", "prof"]
     },
     {
         label: "Matières",
         icon: BookOpen,
         href: "/subjects",
         color: "text-blue-500",
-        user: ["admin" ]
+        user: ["admin"]
     },
     {
         label: "Salles",
         icon: MapPin,
         href: "/rooms",
         color: "text-amber-500",
-        user: ["admin", "prof" ]
+        user: ["admin", "prof"]
     },
     {
         label: "Emploi du temps",
         icon: Calendar,
         href: "/schedule",
         color: "text-indigo-500",
-        user: ["admin", "prof" ]
-    },   
+        user: ["admin", "prof"]
+    },
 ];
 
 export const Sidebar = () => {
@@ -144,13 +144,13 @@ export const Sidebar = () => {
             .split("; ")
             .find(row => row.startsWith(name + "="))
             ?.split("=")[1] ?? null;
-        };
+    };
 
     const [role, setRole] = useState('');
 
     useEffect(() => {
-            setRole(getCookie("user-role") ?? "N/A");
-        }, []);
+        setRole(getCookie("user-role") ?? "N/A");
+    }, []);
 
     const handleLogout = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -189,7 +189,7 @@ export const Sidebar = () => {
 
                     {/* Routes */}
                     <div className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-                        {routes.map((route) => ( (route?.user?.includes(role)) &&
+                        {routes.map((route) => ((route?.user?.includes(role)) &&
                             <Link
                                 key={route.href}
                                 href={route.href}
@@ -217,7 +217,7 @@ export const Sidebar = () => {
 
                     {/* User / Settings Footer */}
                     <div className="mt-auto px-3 py-4 border-t border-white/10">
-                        {role==="admin" && <Link href="/settings" onClick={() => close()} className="flex items-center p-3 rounded-xl hover:bg-white/10 text-zinc-400 transition-colors">
+                        {role === "admin" && <Link href="/settings" onClick={() => close()} className="flex items-center p-3 rounded-xl hover:bg-white/10 text-zinc-400 transition-colors">
                             <Settings className="h-5 w-5 mr-3" />
                             <span className="font-medium text-sm">Paramètres</span>
                         </Link>}
