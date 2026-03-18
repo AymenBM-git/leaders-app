@@ -230,8 +230,8 @@ export default function ParentDetailsPage({ params }: { params: Promise<{ id: st
                                     defaultValue={parent.relation2}
                                     disabled={isReadOnly}
                                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 transition-all text-sm">
-                                    <option value="father">Père</option>
                                     <option value="mother">Mère</option>
+                                    <option value="father">Père</option>
                                     <option value="guardian">Tuteur Légal</option>
                                 </select>
                             </div>

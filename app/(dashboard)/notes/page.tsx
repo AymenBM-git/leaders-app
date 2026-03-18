@@ -212,7 +212,7 @@ const NotesPage = () => {
                     className="flex items-center gap-2 bg-white hover:bg-slate-50 text-indigo-600 border-2 border-indigo-100 px-6 py-3 rounded-2xl font-bold shadow-sm transition-all hover:shadow-md active:scale-95"
                 >
                     <FileText className="w-5 h-5" />
-                    <span>سجل الملاحظات</span>
+                    <span>محرر Eduserv</span>
                 </Link>
             </div>
 
