@@ -4,6 +4,7 @@ CREATE TABLE "User" (
     "password" TEXT NOT NULL,
     "role" TEXT,
     "idTeach" INTEGER,
+    "active" BOOLEAN DEFAULT true,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("login")
 );
@@ -29,12 +30,17 @@ CREATE TABLE "Student" (
 -- CreateTable
 CREATE TABLE "Parent" (
     "id" SERIAL NOT NULL,
-    "name" TEXT,
-    "relation" TEXT,
-    "email" TEXT,
-    "phone" TEXT,
+    "name1" TEXT,
+    "relation1" TEXT,
+    "email1" TEXT,
+    "phone1" TEXT,
+    "name2" TEXT,
+    "relation2" TEXT,
+    "email2" TEXT,
+    "phone2" TEXT,
     "username" TEXT,
     "password" TEXT,
+    "active" BOOLEAN DEFAULT true,
 
     CONSTRAINT "Parent_pkey" PRIMARY KEY ("id")
 );
@@ -46,7 +52,7 @@ CREATE TABLE "Payment" (
     "paymentDate" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
     "as" TEXT,
     "type" TEXT,
-    "parentId" INTEGER,
+    "studentId" INTEGER,
 
     CONSTRAINT "Payment_pkey" PRIMARY KEY ("id")
 );
@@ -93,6 +99,8 @@ CREATE TABLE "Schedule" (
     "day" TEXT,
     "start" TEXT,
     "duration" INTEGER,
+    "group" BOOLEAN DEFAULT false,
+    "week" TEXT DEFAULT 'all',
     "subjectId" INTEGER,
     "roomId" INTEGER,
     "classId" INTEGER,
@@ -123,6 +131,109 @@ CREATE TABLE "Taf" (
 );
 
 -- CreateTable
+CREATE TABLE "Event" (
+    "id" SERIAL NOT NULL,
+    "name" TEXT,
+    "target" INTEGER,
+    "dateEvent" TIMESTAMP(3),
+    "description" TEXT,
+
+    CONSTRAINT "Event_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Activity" (
+    "id" SERIAL NOT NULL,
+    "nameUser" TEXT,
+    "dateActivity" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
+    "description" TEXT,
+
+    CONSTRAINT "Activity_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Absence" (
+    "id" SERIAL NOT NULL,
+    "studentId" INTEGER,
+    "classId" INTEGER,
+    "teacherId" INTEGER,
+    "dateAbsence" TIMESTAMP(3),
+    "hour" TEXT,
+
+    CONSTRAINT "Absence_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Planing" (
+    "id" SERIAL NOT NULL,
+    "teacherId" INTEGER,
+    "as" TEXT,
+    "name" TEXT,
+    "type" TEXT,
+    "level" TEXT,
+    "datePlaning" TIMESTAMP(3),
+    "description" TEXT,
+
+    CONSTRAINT "Planing_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "SessionEvaluation" (
+    "id" SERIAL NOT NULL,
+    "planingId" INTEGER NOT NULL,
+    "studentId" INTEGER NOT NULL,
+    "note" DOUBLE PRECISION NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "SessionEvaluation_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Ressouce" (
+    "id" SERIAL NOT NULL,
+    "name" TEXT,
+    "planingId" INTEGER,
+    "classId" INTEGER,
+
+    CONSTRAINT "Ressouce_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Notification" (
+    "id" SERIAL NOT NULL,
+    "parentId" INTEGER NOT NULL,
+    "title" TEXT NOT NULL,
+    "message" TEXT NOT NULL,
+    "type" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "read" BOOLEAN NOT NULL DEFAULT false,
+
+    CONSTRAINT "Notification_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Note" (
+    "id" SERIAL NOT NULL,
+    "as" TEXT,
+    "libperiodexam" TEXT,
+    "idenelev" TEXT,
+    "prenomnom" TEXT,
+    "libematier" TEXT,
+    "codematiere" TEXT,
+    "abretypeeprear" TEXT,
+    "libTypeEpr" TEXT,
+    "iuense" TEXT,
+    "libens" TEXT,
+    "libeclass" TEXT,
+    "codeclass" TEXT,
+    "noteepre" DOUBLE PRECISION,
+    "codeTypeEpre" INTEGER,
+    "numEpre" INTEGER,
+
+    CONSTRAINT "Note_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "_ClassToTeacher" (
     "A" INTEGER NOT NULL,
     "B" INTEGER NOT NULL,
@@ -132,6 +243,9 @@ CREATE TABLE "_ClassToTeacher" (
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_idTeach_key" ON "User"("idTeach");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "SessionEvaluation_planingId_studentId_key" ON "SessionEvaluation"("planingId", "studentId");
 
 -- CreateIndex
 CREATE INDEX "_ClassToTeacher_B_index" ON "_ClassToTeacher"("B");
@@ -146,7 +260,7 @@ ALTER TABLE "Student" ADD CONSTRAINT "Student_classId_fkey" FOREIGN KEY ("classI
 ALTER TABLE "Student" ADD CONSTRAINT "Student_parentId_fkey" FOREIGN KEY ("parentId") REFERENCES "Parent"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Payment" ADD CONSTRAINT "Payment_parentId_fkey" FOREIGN KEY ("parentId") REFERENCES "Parent"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Payment" ADD CONSTRAINT "Payment_studentId_fkey" FOREIGN KEY ("studentId") REFERENCES "Student"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Teacher" ADD CONSTRAINT "Teacher_subjectId_fkey" FOREIGN KEY ("subjectId") REFERENCES "Subject"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -168,6 +282,33 @@ ALTER TABLE "Taf" ADD CONSTRAINT "Taf_subjectId_fkey" FOREIGN KEY ("subjectId") 
 
 -- AddForeignKey
 ALTER TABLE "Taf" ADD CONSTRAINT "Taf_classId_fkey" FOREIGN KEY ("classId") REFERENCES "Class"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Absence" ADD CONSTRAINT "Absence_studentId_fkey" FOREIGN KEY ("studentId") REFERENCES "Student"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Absence" ADD CONSTRAINT "Absence_classId_fkey" FOREIGN KEY ("classId") REFERENCES "Class"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Absence" ADD CONSTRAINT "Absence_teacherId_fkey" FOREIGN KEY ("teacherId") REFERENCES "Teacher"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Planing" ADD CONSTRAINT "Planing_teacherId_fkey" FOREIGN KEY ("teacherId") REFERENCES "Teacher"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "SessionEvaluation" ADD CONSTRAINT "SessionEvaluation_planingId_fkey" FOREIGN KEY ("planingId") REFERENCES "Planing"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "SessionEvaluation" ADD CONSTRAINT "SessionEvaluation_studentId_fkey" FOREIGN KEY ("studentId") REFERENCES "Student"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Ressouce" ADD CONSTRAINT "Ressouce_planingId_fkey" FOREIGN KEY ("planingId") REFERENCES "Planing"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Ressouce" ADD CONSTRAINT "Ressouce_classId_fkey" FOREIGN KEY ("classId") REFERENCES "Class"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Notification" ADD CONSTRAINT "Notification_parentId_fkey" FOREIGN KEY ("parentId") REFERENCES "Parent"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_ClassToTeacher" ADD CONSTRAINT "_ClassToTeacher_A_fkey" FOREIGN KEY ("A") REFERENCES "Class"("id") ON DELETE CASCADE ON UPDATE CASCADE;

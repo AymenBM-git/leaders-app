@@ -31,7 +31,10 @@ export async function GET(request: Request, props: { params: Promise<{ id: strin
 
         const planings = await prisma.planing.findMany({
             where: {
-                level: studentLevel
+                classId: studentClassId,
+                datePlaning: {
+                    lte: new Date()
+                }
             },
             include: {
                 teacher: {
@@ -45,6 +48,11 @@ export async function GET(request: Request, props: { params: Promise<{ id: strin
                             { classId: null },
                             { classId: studentClassId }
                         ]
+                    }
+                },
+                sessionEvaluations: {
+                    where: {
+                        studentId: Number(params.id)
                     }
                 }
             },

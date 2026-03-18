@@ -60,7 +60,7 @@ export default function NewStudentPage() {
         try {
             const res = await fetch("/api/payments", {
                 method: "POST",
-                body: JSON.stringify({ studentId: formData.get("studentId"), amount: formData.get("amount"),as: formData.get("as"), type: formData.get("type") }),
+                body: JSON.stringify({ studentId: formData.get("studentId"), amount: formData.get("amount"),as: formData.get("as"), type: formData.get("type"), title: formData.get("title") }),
             });
 
             if (!res.ok) throw new Error("Erreur lors de la création");
@@ -86,8 +86,8 @@ export default function NewStudentPage() {
                     <ChevronLeft className="w-5 h-5" />
                 </Link>
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900">Nouveau Payement</h1>
-                    <p className="text-slate-500 text-sm">Créez un nouveau payement parent.</p>
+                    <h1 className="text-2xl font-bold text-slate-900">Nouveau Paiement</h1>
+                    <p className="text-slate-500 text-sm">Créez un nouveau paiement élève.</p>
                 </div>
             </div>
 
@@ -98,7 +98,7 @@ export default function NewStudentPage() {
                         {/* Titre */}
                         <h3 className="font-bold text-slate-900 mb-6 flex items-center gap-2">
                             <CreditCard className="w-5 h-5 text-indigo-500" />
-                            Informations Payement
+                            Informations Paiement
                         </h3>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -148,15 +148,23 @@ export default function NewStudentPage() {
                                     <option value="virement">Virement</option>
                                 </select>
                             </div>
-                            {/** Description 
+                            {/** title */}
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-700">Description</label>
-                                <textarea
-                                    name="description"
-                                    placeholder="Ex: Description"
+                                <label className="text-sm font-medium text-slate-700">Titre</label>
+                                <select
+                                    required
+                                    name="title"
                                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
-                                />
-                            </div>*/}
+                                >
+                                    <option value="">Sélectionner un titre...</option>
+                                    <option value="Inscription">Inscription</option>
+                                    <option value="Scolarité">Scolarité</option>
+                                    <option value="Cantine">Cantine</option>
+                                    <option value="Panier">Panier</option>
+                                    <option value="Club">Club</option>
+                                    <option value="Extras">Extras</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
 

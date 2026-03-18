@@ -23,22 +23,23 @@ model User {
 }
 
 model Student {
-  id        Int       @id @default(autoincrement())
-  firstName String?
-  lastName  String?
-  birthday  DateTime?
-  idenelev  String?
-  classe    Class?    @relation(fields: [classId], references: [id])
-  classId   Int?
-  parent    Parent?   @relation(fields: [parentId], references: [id])
-  parentId  Int?
-  photo     String?
-  status    String?
-  address   String?
-  phone     String?
-  gender    String?
-  payments  Payment[]
-  absences  Absence[]
+  id                 Int                 @id @default(autoincrement())
+  firstName          String?
+  lastName           String?
+  birthday           DateTime?
+  idenelev           String?
+  classe             Class?              @relation(fields: [classId], references: [id])
+  classId            Int?
+  parent             Parent?             @relation(fields: [parentId], references: [id])
+  parentId           Int?
+  photo              String?
+  status             String?
+  address            String?
+  phone              String?
+  gender             String?
+  payments           Payment[]
+  absences           Absence[]
+  sessionEvaluations SessionEvaluation[]
 }
 
 model Parent {
@@ -66,6 +67,7 @@ model Payment {
   type        String?
   student     Student?  @relation(fields: [studentId], references: [id])
   studentId   Int?
+  title       String?
 }
 
 model Teacher {
@@ -83,6 +85,8 @@ model Teacher {
   subject   Subject?   @relation(fields: [subjectId], references: [id])
   subjectId Int?
   planings  Planing[]
+
+  absences Absence[]
 }
 
 model Class {
@@ -95,6 +99,8 @@ model Class {
   tafs      Taf[]
   absences  Absence[]
   ressouces Ressouce[]
+
+  planings Planing[]
 }
 
 model Room {
@@ -165,21 +171,37 @@ model Absence {
   studentId   Int?
   classe      Class?    @relation(fields: [classId], references: [id])
   classId     Int?
+  teacherId   Int?
+  teacher     Teacher?  @relation(fields: [teacherId], references: [id])       
   dateAbsence DateTime?
   hour        String?
 }
 
 model Planing {
-  id          Int        @id @default(autoincrement())
-  teacherId   Int?
-  teacher     Teacher?   @relation(fields: [teacherId], references: [id])
-  as          String?
-  name        String?
-  type        String?
-  level       String?
-  datePlaning DateTime?
-  description String?
-  ressouces   Ressouce[]
+  id                 Int                 @id @default(autoincrement())
+  teacherId          Int?
+  teacher            Teacher?            @relation(fields: [teacherId], references: [id])
+  as                 String?
+  name               String?
+  type               String?
+  classId   Int?
+  class     Class?   @relation(fields: [classId], references: [id])
+  datePlaning        DateTime?
+  description        String?
+  ressouces          Ressouce[]
+  sessionEvaluations SessionEvaluation[]
+}
+
+model SessionEvaluation {
+  id        Int      @id @default(autoincrement())
+  planingId Int
+  planing   Planing  @relation(fields: [planingId], references: [id], onDelete: Cascade)
+  studentId Int
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  note      Float // out of 10
+  createdAt DateTime @default(now())
+
+  @@unique([planingId, studentId])
 }
 
 model Ressouce {

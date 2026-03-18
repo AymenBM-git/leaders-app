@@ -18,7 +18,8 @@ export default function PlaningPage() {
         const year = now.getFullYear();
         return now.getMonth() >= 6 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
     });
-    const [selectedLevel, setSelectedLevel] = useState("1");
+    const [selectedClassId, setSelectedClassId] = useState("");
+    const [classes, setClasses] = useState<any[]>([]);
     const [isRessourceModalOpen, setIsRessourceModalOpen] = useState(false);
     const [activePlaningForModal, setActivePlaningForModal] = useState<any>(null);
     const [editingId, setEditingId] = useState<number | null>(null);
@@ -28,7 +29,7 @@ export default function PlaningPage() {
         datePlaning: new Date().toISOString().split('T')[0],
         teacherId: "",
         name: "",
-        level: ""
+        classId: ""
     });
 
     const getCookie = (name: string) => {
@@ -56,9 +57,38 @@ export default function PlaningPage() {
 
     useEffect(() => {
         if (selectedTeacher) {
+            fetchClasses(selectedTeacher);
+        } else {
+            setClasses([]);
+            setSelectedClassId("");
+        }
+    }, [selectedTeacher]);
+
+    useEffect(() => {
+        if (selectedTeacher) {
             fetchPlanings();
         }
-    }, [selectedTeacher, selectedAS, selectedLevel]);
+    }, [selectedTeacher, selectedAS, selectedClassId]);
+
+    const fetchClasses = async (tid: string) => {
+        try {
+            const res = await fetch(`/api/classes/teacher/${tid}`);
+            if (res.ok) {
+                const data = await res.json();
+                setClasses(data);
+                if (data.length > 0) {
+                    setSelectedClassId(prev => {
+                        const exists = data.find((c: any) => c.id.toString() === prev);
+                        return exists ? prev : data[0].id.toString();
+                    });
+                } else {
+                    setSelectedClassId("");
+                }
+            }
+        } catch (error) {
+            console.error("Failed to fetch classes", error);
+        }
+    };
 
     const fetchTeachers = async () => {
         try {
@@ -90,9 +120,10 @@ export default function PlaningPage() {
                 return;
             }
 
+            const classQuery = selectedClassId ? `&classId=${selectedClassId}` : "";
             const url = isTeacher
-                ? `/api/planings/teacher/${userId}?as=${selectedAS}&level=${selectedLevel}`
-                : `/api/planings/teacher/${targetTeacherId}?as=${selectedAS}&level=${selectedLevel}`;
+                ? `/api/planings/teacher/${userId}?as=${selectedAS}${classQuery}`
+                : `/api/planings/teacher/${targetTeacherId}?as=${selectedAS}${classQuery}`;
 
             const res = await fetch(url);
             if (res.ok) {
@@ -139,7 +170,7 @@ export default function PlaningPage() {
             const payload = {
                 ...formData,
                 as: selectedAS,
-                level: selectedLevel,
+                classId: selectedClassId,
                 teacherId: targetTeacherId
             };
 
@@ -157,7 +188,7 @@ export default function PlaningPage() {
                     datePlaning: new Date().toISOString().split('T')[0],
                     teacherId: "", // Not used directly in header-fix mode but kept for schema
                     name: "",
-                    level: ""
+                    classId: ""
                 });
                 setEditingId(null);
                 fetchPlanings();
@@ -174,7 +205,7 @@ export default function PlaningPage() {
 
     const handleEdit = (planing: any) => {
         setEditingId(planing.id);
-        setSelectedLevel(planing.level || "");
+        setSelectedClassId(planing.classId?.toString() || "");
         setSelectedAS(planing.as || "");
         setFormData({
             type: planing.type || "",
@@ -182,7 +213,7 @@ export default function PlaningPage() {
             datePlaning: planing.datePlaning ? new Date(planing.datePlaning).toISOString().split('T')[0] : "",
             teacherId: planing.teacherId?.toString() || "",
             name: planing.name || "",
-            level: planing.level || ""
+            classId: planing.classId?.toString() || ""
         });
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
@@ -288,18 +319,20 @@ export default function PlaningPage() {
                             ))}
                         </select>
                     </div>
-                    {/** Niveau */}
+                    {/** Classe */}
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-[10px] uppercase tracking-widest font-bold opacity-70 ml-1">Niveau</label>
+                        <label className="text-[10px] uppercase tracking-widest font-bold opacity-70 ml-1">Classe</label>
                         <select
-                            value={selectedLevel}
-                            onChange={(e) => setSelectedLevel(e.target.value)}
+                            required
+                            value={selectedClassId}
+                            onChange={(e) => setSelectedClassId(e.target.value)}
                             className="px-4 py-2.5 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl outline-none focus:ring-2 focus:ring-white/30 transition-all text-sm font-medium min-w-[150px]"
                         >
-                            {/*<option value="" className="text-slate-900">Tout les niveaux</option>*/}
-                            <option value="1" className="text-slate-900">السابعة أساسي</option>
-                            <option value="2" className="text-slate-900">الثامنة أساسي</option>
-                            <option value="3" className="text-slate-900">التاسعة أساسي</option>
+                            <option value="" className="text-slate-900">Choisir une classe</option>
+                            {classes.map((c) => {
+                                const name = (c.level === "1") ? "السابعة أساسي " + c.name : (c.level === "2") ? "الثامنة أساسي " + c.name : (c.level === "3") ? "التاسعة أساسي " + c.name : c.name;
+                                return <option key={c.id} value={c.id.toString()} className="text-slate-900">{name}</option>;
+                            })}
                         </select>
                     </div>
                 </div>
@@ -393,7 +426,7 @@ export default function PlaningPage() {
                                                 datePlaning: new Date().toISOString().split('T')[0],
                                                 teacherId: userRole === 'admin' ? "" : (userId || ""),
                                                 name: "",
-                                                level: ""
+                                                classId: ""
                                             });
                                         }}
                                         className="flex-1 py-3.5 rounded-2xl bg-slate-100 text-slate-600 font-bold hover:bg-slate-200 transition-all"
@@ -474,9 +507,20 @@ export default function PlaningPage() {
 
                                                 <div className="flex-1 space-y-2">
                                                     <div className="flex items-center justify-between">
-                                                        <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold tracking-widest uppercase ${typeColor}`}>
-                                                            {typeLabel}
-                                                        </span>
+                                                        <div className="flex items-center gap-3">
+                                                            <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold tracking-widest uppercase ${typeColor}`}>
+                                                                {typeLabel}
+                                                            </span>
+                                                            {planing.averageNote !== null && planing.averageNote !== undefined && (
+                                                                <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold border flex items-center gap-1 ${
+                                                                    planing.averageNote >= 5 
+                                                                        ? 'bg-emerald-50 text-emerald-700 border-emerald-100' 
+                                                                        : 'bg-red-50 text-red-700 border-red-100'
+                                                                }`}>
+                                                                    ⭐ {planing.averageNote.toFixed(2)} / 10 ({planing.evalCount})
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                         <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                                             <button
                                                                 onClick={() => {
@@ -578,7 +622,7 @@ export default function PlaningPage() {
                     fetchPlanings();
                 }}
                 planingId={activePlaningForModal?.id || null}
-                level={activePlaningForModal?.level || selectedLevel}
+                classId={activePlaningForModal?.classId?.toString() || selectedClassId}
                 teacherId={activePlaningForModal?.teacherId?.toString() || (userRole === 'admin' ? selectedTeacher : (userId || ""))}
             />
         </div>

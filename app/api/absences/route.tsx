@@ -3,7 +3,28 @@ import prisma from '../../../lib/prisma';
 import { NextResponse } from 'next/server'
 import { notifyParentsOfStudent } from '../../../lib/notifications';
 
-export async function GET() {
+export async function GET(request: Request) {
+    const { searchParams } = new URL(request.url);
+    const classIdStr = searchParams.get('classId');
+    const dateStr = searchParams.get('date');
+    const hourStr = searchParams.get('hour');
+
+    if (classIdStr && dateStr && hourStr) {
+        const classId = Number(classIdStr);
+        const dateAbsence = new Date(dateStr);
+        const absences = await prisma.absence.findMany({
+            where: {
+                classId,
+                dateAbsence,
+                hour: hourStr
+            },
+            include: {
+                student: true
+            }
+        });
+        return NextResponse.json(absences);
+    }
+
     const month = new Date().getMonth() + 1;
     let date1 = "";
     let date2 = "";
@@ -42,6 +63,7 @@ export async function POST(request: Request) {
                 classId: Number(json.classId),
                 dateAbsence: new Date(json.dateAbsence),
                 hour: json.hour,
+                teacherId: json.teacherId ? Number(json.teacherId) : null,
                 //codeabsence: json.codeabsence
             }
         })

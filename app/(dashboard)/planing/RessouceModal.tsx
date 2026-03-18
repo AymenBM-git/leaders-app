@@ -9,11 +9,11 @@ interface RessouceModalProps {
     isOpen: boolean;
     onClose: () => void;
     planingId: number | null;
-    level: string;
+    classId: string;
     teacherId: string;
 }
 
-export default function RessouceModal({ isOpen, onClose, planingId, level, teacherId }: RessouceModalProps) {
+export default function RessouceModal({ isOpen, onClose, planingId, classId, teacherId }: RessouceModalProps) {
     const [classes, setClasses] = useState<any[]>([]);
     const [selectedClasse, setSelectedClasse] = useState("");
     const [files, setFiles] = useState<File[]>([]);
@@ -23,8 +23,9 @@ export default function RessouceModal({ isOpen, onClose, planingId, level, teach
     useEffect(() => {
         if (isOpen && teacherId) {
             fetchClasses();
+            setSelectedClasse(classId || "");
         }
-    }, [isOpen, teacherId, level]);
+    }, [isOpen, teacherId, classId]);
 
     const fetchClasses = async () => {
         setIsLoadingClasses(true);
@@ -33,11 +34,7 @@ export default function RessouceModal({ isOpen, onClose, planingId, level, teach
             const res = await fetch(`/api/classes/teacher/${teacherId}`);
             if (res.ok) {
                 const data = await res.json();
-                // Filter by level if provided
-                const filtered = level
-                    ? data.filter((c: any) => c.level === level)
-                    : data;
-                setClasses(filtered);
+                setClasses(data);
             }
         } catch (error) {
             console.error("Failed to fetch classes", error);

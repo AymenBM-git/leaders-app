@@ -16,6 +16,7 @@ interface Payment {
         lastName: string;
     } | null;
     as: string;
+    title: string | null;
     paymentDate: string;
 }
 
@@ -147,6 +148,7 @@ export default function StudentsPage() {
                         <thead>
                             <tr className="bg-slate-50/50 border-b border-slate-100">
                                 <th className="p-4 text-xs font-semibold uppercase text-slate-500 tracking-wider">Elève</th>
+                                <th className="p-4 text-xs font-semibold uppercase text-slate-500 tracking-wider">Titre</th>
                                 <th className="p-4 text-xs font-semibold uppercase text-slate-500 tracking-wider">Montant</th>
                                 <th className="p-4 text-xs font-semibold uppercase text-slate-500 tracking-wider">Total Payer</th>
                                 <th className="p-4 text-xs font-semibold uppercase text-slate-500 tracking-wider">Date Payement</th>
@@ -176,6 +178,12 @@ export default function StudentsPage() {
                                             ) : (
                                                 <span className="text-slate-400 text-sm">Non assigné</span>
                                             )}
+                                        </td>
+                                        {/* Titre */}
+                                        <td className="p-4">
+                                            <span className="text-sm font-medium text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg">
+                                                {payment.title || 'N/A'}
+                                            </span>
                                         </td>
                                         {/* Montant */}
                                         <td className="p-4">

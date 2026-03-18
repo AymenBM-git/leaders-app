@@ -22,7 +22,7 @@ export async function GET() {
 export async function POST(request: Request) {
     try {
         const data = await request.json();
-        const { teacherId, as, type, datePlaning, description, name, level } = data;
+        const { teacherId, as, type, datePlaning, description, name, classId } = data;
 
         const planing = await prisma.planing.create({
             data: {
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
                 datePlaning: datePlaning ? new Date(datePlaning) : null,
                 description,
                 name,
-                level,
+                classId: classId ? parseInt(classId) : null,
             },
             include: {
                 teacher: true,

@@ -46,14 +46,15 @@ export async function POST(request: Request) {
     try {
         const json = await request.json()//.formData()
 
-        const { amount, type, studentId,as } = json
+        const { amount, type, studentId, as, title } = json
 
         const payment = await prisma.payment.create({
             data: {
-                amount:Number(amount),
+                amount: Number(amount),
                 type,
-                studentId:Number(studentId)||null,
-                as
+                studentId: Number(studentId) || null,
+                as,
+                title
             }
         })
 

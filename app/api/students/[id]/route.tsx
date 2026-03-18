@@ -15,6 +15,7 @@ export async function GET(request: Request, props: { params: Promise<{ id: strin
             parent: true
         }
     })
+
     return NextResponse.json(student)
 }
 

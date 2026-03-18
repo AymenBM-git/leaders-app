@@ -11,6 +11,7 @@ export async function GET() {
             parent: true
         }
     })
+
     return NextResponse.json(students)
 }
 

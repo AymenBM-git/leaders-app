@@ -18,17 +18,18 @@ export async function GET(request: Request, props: { params: Promise<{ id: strin
 export async function PUT(request: Request, props: { params: Promise<{ id: string }> }) {
     const params = await props.params;
     const json = await request.json()
-    const payment = await prisma.payment.update({
-        where: {
-            id: Number(params.id)
-        },
-        data: {
-            amount: Number(json.amount),
-            as: json.as,
-            type: json.type,
-            studentId: Number(json.studentId)||null,
-        }
-    })
+        const payment = await prisma.payment.update({
+            where: {
+                id: Number(params.id)
+            },
+            data: {
+                amount: Number(json.amount),
+                as: json.as,
+                type: json.type,
+                studentId: Number(json.studentId) || null,
+                title: json.title
+            }
+        })
 
     // 1. Log Activity
                 const cookiesStore = cookies();

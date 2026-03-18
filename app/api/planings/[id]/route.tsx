@@ -28,7 +28,7 @@ export async function PUT(
     try {
         const id = parseInt((await params).id);
         const data = await request.json();
-        const { teacherId, as, type, datePlaning, description, name, level } = data;
+        const { teacherId, as, type, datePlaning, description, name, classId } = data;
 
         const planing = await prisma.planing.update({
             where: { id },
@@ -39,7 +39,7 @@ export async function PUT(
                 datePlaning: datePlaning ? new Date(datePlaning) : undefined,
                 description,
                 name,
-                level,
+                classId: classId ? parseInt(classId) : null,
             },
             include: { teacher: true }
         });

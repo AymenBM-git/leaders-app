@@ -195,9 +195,9 @@ export default function StudentsPage() {
                                         {/* Actions */}
                                         <td className="p-4 text-right">
                                             <div className="flex items-center justify-end gap-2">
-                                                <Link href={`/absences/${absence.id}`} className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded-lg transition-all" title="Voir profil">
+                                                {/*<Link href={`/absences/${absence.id}`} className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded-lg transition-all" title="Voir profil">
                                                     <Eye className="w-4 h-4" />
-                                                </Link>
+                                                </Link>*/}
                                                 <button
                                                     onClick={() => handleDelete(absence.id)}
                                                     className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"

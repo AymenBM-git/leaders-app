@@ -167,7 +167,7 @@ export default function StudentDetailsPage({ params }: { params: Promise<{ id: s
                                 className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                             >
                                 <option value="">Choisir une classe</option>
-                                {classes.map((c) => {
+                                {classes.map((c: any) => {
                                     const name = (c.level === "1") ? "السابعة أساسي " + c.name : (c.level === "2") ? "الثامنة أساسي " + c.name : (c.level === "3") ? "التاسعة أساسي " + c.name : ""
                                     return <option key={c.id} value={c.id}>{name}</option>
                                 })}

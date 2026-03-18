@@ -10,23 +10,38 @@ export async function GET(
         const teacherId = parseInt(id);
         const { searchParams } = new URL(request.url);
         const as = searchParams.get('as');
-        const level = searchParams.get('level');
+        const classId = searchParams.get('classId');
 
         const planings = await prisma.planing.findMany({
             where: {
                 teacherId,
                 ...(as ? { as } : {}),
-                ...(level ? { level } : {})
+                ...(classId ? { classId: parseInt(classId) } : {})
             },
             include: {
                 teacher: true,
-                ressouces: true
+                ressouces: true,
+                sessionEvaluations: true
             },
             orderBy: {
                 datePlaning: 'asc'
             }
         });
-        return NextResponse.json(planings);
+
+        const planingsWithAverage = planings.map(planing => {
+            let average = null;
+            if (planing.sessionEvaluations && planing.sessionEvaluations.length > 0) {
+                const sum = planing.sessionEvaluations.reduce((acc, curr) => acc + curr.note, 0);
+                average = sum / planing.sessionEvaluations.length;
+            }
+            return {
+                ...planing,
+                averageNote: average,
+                evalCount: planing.sessionEvaluations.length
+            };
+        });
+
+        return NextResponse.json(planingsWithAverage);
     } catch (error) {
         return NextResponse.json({ error: 'Failed to fetch planings for teacher' }, { status: 500 });
     }
