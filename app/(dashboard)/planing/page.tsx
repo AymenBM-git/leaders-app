@@ -162,6 +162,11 @@ export default function PlaningPage() {
             return;
         }
 
+        if (!selectedClassId) {
+            toast.error("Veuillez sélectionner une classe");
+            return;
+        }
+
         setIsSubmitting(true);
         try {
             const method = editingId ? 'PUT' : 'POST';

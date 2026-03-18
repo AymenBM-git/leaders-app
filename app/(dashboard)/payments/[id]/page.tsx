@@ -72,7 +72,13 @@ export default function StudentDetailsPage({ params }: { params: Promise<{ id: s
         try {
             const res = await fetch(`/api/payments/${unwrappedParams.id}`, {
                 method: 'PUT',
-                body: JSON.stringify({ studentId: formData.get("studentId"), amount: formData.get("amount"),as: formData.get("as"), type: formData.get("type") }),
+                body: JSON.stringify({ 
+                    studentId: formData.get("studentId"), 
+                    amount: formData.get("amount"),
+                    as: formData.get("as"), 
+                    type: formData.get("type"),
+                    title: formData.get("title")
+                }),
             });
 
             if (res.ok) {
@@ -198,6 +204,24 @@ export default function StudentDetailsPage({ params }: { params: Promise<{ id: s
                                     <option value="comptant">Comptant</option>
                                     <option value="cheque">Chèque</option>
                                     <option value="virement">Virement</option>
+                                </select>
+                            </div>
+                            {/* Titre */}
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-slate-700">Titre</label>
+                                <select
+                                    required
+                                    name="title"
+                                    defaultValue={payment?.title}
+                                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
+                                >
+                                    <option value="">Sélectionner un titre...</option>
+                                    <option value="Inscription">Inscription</option>
+                                    <option value="Scolarité">Scolarité</option>
+                                    <option value="Cantine">Cantine</option>
+                                    <option value="Panier">Panier</option>
+                                    <option value="Club">Club</option>
+                                    <option value="Extras">Extras</option>
                                 </select>
                             </div>
                         </div>

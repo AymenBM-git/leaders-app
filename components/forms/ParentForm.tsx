@@ -124,7 +124,6 @@ export default function ParentForm({ onSuccess, onCancel }: ParentFormProps) {
                             <input
                                 type="text"
                                 name="name2"
-                                required
                                 placeholder="Ex: Ahmed Konzani"
                                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 transition-all text-sm"
                             />
@@ -159,7 +158,6 @@ export default function ParentForm({ onSuccess, onCancel }: ParentFormProps) {
                                 <input
                                     type="tel"
                                     name="phone2"
-                                    required
                                     placeholder="+216 00 000 000"
                                     className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 transition-all text-sm"
                                 />

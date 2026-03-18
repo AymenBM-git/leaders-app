@@ -218,7 +218,6 @@ export default function ParentDetailsPage({ params }: { params: Promise<{ id: st
                                 <input
                                     name="name2"
                                     type="text"
-                                    required
                                     defaultValue={parent.name2}
                                     readOnly={isReadOnly}
                                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 transition-all text-sm"
@@ -259,7 +258,6 @@ export default function ParentDetailsPage({ params }: { params: Promise<{ id: st
                                     <input
                                         name="phone2"
                                         type="tel"
-                                        required
                                         defaultValue={parent.phone2}
                                         readOnly={isReadOnly}
                                         className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 transition-all text-sm"

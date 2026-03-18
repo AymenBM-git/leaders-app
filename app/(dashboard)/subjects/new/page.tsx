@@ -72,7 +72,7 @@ export default function NewSubjectPage() {
                     </div>
 
                     <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-700">Identifiant Matière</label>
+                            <label className="text-sm font-medium text-slate-700">Identifiant Matière (Eduserv)</label>
                             <div className="relative">
                                 <label className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
                                 <input
