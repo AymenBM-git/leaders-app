@@ -96,10 +96,17 @@ const routes = [
         user: ["admin", "prof"]
     },
     {
-        label: "Notes",
+        label: "Notes Devoirs",
+        icon: NotebookPen,
+        href: "/notesDevoirs",
+        color: "text-yellow-500",
+        user: ["admin", "prof"]
+    },
+    {
+        label: "Notes Eduserv",
         icon: NotebookPen,
         href: "/notes",
-        color: "text-yellow-500",
+        color: "text-red-500",
         user: ["admin"]
     },
     {

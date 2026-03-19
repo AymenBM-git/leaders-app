@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client"
   output   = "../lib/generated/prisma"
@@ -17,9 +11,9 @@ model User {
   login    String   @id
   password String
   role     String?
-  teacher  Teacher? @relation(fields: [idTeach], references: [id])
   idTeach  Int?     @unique
   active   Boolean? @default(true)
+  teacher  Teacher? @relation(fields: [idTeach], references: [id])
 }
 
 model Student {
@@ -28,18 +22,19 @@ model Student {
   lastName           String?
   birthday           DateTime?
   idenelev           String?
-  classe             Class?              @relation(fields: [classId], references: [id])
   classId            Int?
-  parent             Parent?             @relation(fields: [parentId], references: [id])
   parentId           Int?
   photo              String?
   status             String?
   address            String?
   phone              String?
   gender             String?
-  payments           Payment[]
   absences           Absence[]
+  noteDevoirs        NoteDevoir[]
+  payments           Payment[]
   sessionEvaluations SessionEvaluation[]
+  classe             Class?              @relation(fields: [classId], references: [id])
+  parent             Parent?             @relation(fields: [parentId], references: [id])
 }
 
 model Parent {
@@ -52,11 +47,11 @@ model Parent {
   relation2     String?
   email2        String?
   phone2        String?
-  childrenIds   Student[]
   username      String?
   password      String?
   active        Boolean?       @default(true)
   notifications Notification[]
+  childrenIds   Student[]
 }
 
 model Payment {
@@ -65,9 +60,9 @@ model Payment {
   paymentDate DateTime? @default(now())
   as          String?
   type        String?
-  student     Student?  @relation(fields: [studentId], references: [id])
   studentId   Int?
   title       String?
+  student     Student?  @relation(fields: [studentId], references: [id])
 }
 
 model Teacher {
@@ -79,28 +74,27 @@ model Teacher {
   phone     String?
   gender    String?
   diploma   String?
-  classes   Class[]
-  schedules Schedule[]
-  user      User?
-  subject   Subject?   @relation(fields: [subjectId], references: [id])
   subjectId Int?
+  absences  Absence[]
   planings  Planing[]
-
-  absences Absence[]
+  schedules Schedule[]
+  subject   Subject?   @relation(fields: [subjectId], references: [id])
+  user      User?
+  classes   Class[]    @relation("ClassToTeacher")
 }
 
 model Class {
-  id        Int        @id @default(autoincrement())
-  name      String?
-  level     String?
-  teachers  Teacher[]
-  students  Student[]
-  schedules Schedule[]
-  tafs      Taf[]
-  absences  Absence[]
-  ressouces Ressouce[]
-
-  planings Planing[]
+  id          Int          @id @default(autoincrement())
+  name        String?
+  level       String?
+  absences    Absence[]
+  noteDevoirs NoteDevoir[]
+  planings    Planing[]
+  ressouces   Ressouce[]
+  schedules   Schedule[]
+  students    Student[]
+  tafs        Taf[]
+  teachers    Teacher[]    @relation("ClassToTeacher")
 }
 
 model Room {
@@ -120,34 +114,35 @@ model Schedule {
   duration  Int?
   group     Boolean? @default(false)
   week      String?  @default("all")
-  subject   Subject? @relation(fields: [subjectId], references: [id])
   subjectId Int?
   roomId    Int?
-  room      Room?    @relation(fields: [roomId], references: [id])
   classId   Int?
-  class     Class?   @relation(fields: [classId], references: [id])
   teacherId Int?
+  class     Class?   @relation(fields: [classId], references: [id])
+  room      Room?    @relation(fields: [roomId], references: [id])
+  subject   Subject? @relation(fields: [subjectId], references: [id])
   teacher   Teacher? @relation(fields: [teacherId], references: [id])
 }
 
 model Subject {
-  id          Int        @id @default(autoincrement())
+  id          Int          @id @default(autoincrement())
   name        String?
   codematiere String?
-  teachers    Teacher[]
+  noteDevoirs NoteDevoir[]
   schedules   Schedule[]
   tafs        Taf[]
+  teachers    Teacher[]
 }
 
 model Taf {
   id          Int       @id @default(autoincrement())
   subjectId   Int?
-  subject     Subject?  @relation(fields: [subjectId], references: [id])
   classId     Int?
-  class       Class?    @relation(fields: [classId], references: [id])
   type        String?
   dateTaf     DateTime?
   description String?
+  class       Class?    @relation(fields: [classId], references: [id])
+  subject     Subject?  @relation(fields: [subjectId], references: [id])
 }
 
 model Event {
@@ -167,27 +162,27 @@ model Activity {
 
 model Absence {
   id          Int       @id @default(autoincrement())
-  student     Student?  @relation(fields: [studentId], references: [id])
   studentId   Int?
-  classe      Class?    @relation(fields: [classId], references: [id])
   classId     Int?
   teacherId   Int?
-  teacher     Teacher?  @relation(fields: [teacherId], references: [id])       
   dateAbsence DateTime?
   hour        String?
+  classe      Class?    @relation(fields: [classId], references: [id])
+  student     Student?  @relation(fields: [studentId], references: [id])
+  teacher     Teacher?  @relation(fields: [teacherId], references: [id])
 }
 
 model Planing {
   id                 Int                 @id @default(autoincrement())
   teacherId          Int?
-  teacher            Teacher?            @relation(fields: [teacherId], references: [id])
   as                 String?
   name               String?
   type               String?
-  classId   Int?
-  class     Class?   @relation(fields: [classId], references: [id])
   datePlaning        DateTime?
   description        String?
+  classId            Int?
+  class              Class?              @relation(fields: [classId], references: [id])
+  teacher            Teacher?            @relation(fields: [teacherId], references: [id])
   ressouces          Ressouce[]
   sessionEvaluations SessionEvaluation[]
 }
@@ -195,11 +190,11 @@ model Planing {
 model SessionEvaluation {
   id        Int      @id @default(autoincrement())
   planingId Int
-  planing   Planing  @relation(fields: [planingId], references: [id], onDelete: Cascade)
   studentId Int
-  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  note      Float // out of 10
+  note      Float
   createdAt DateTime @default(now())
+  planing   Planing  @relation(fields: [planingId], references: [id], onDelete: Cascade)
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@unique([planingId, studentId])
 }
@@ -208,20 +203,20 @@ model Ressouce {
   id        Int      @id @default(autoincrement())
   name      String?
   planingId Int?
-  planing   Planing? @relation(fields: [planingId], references: [id])
   classId   Int?
   class     Class?   @relation(fields: [classId], references: [id])
+  planing   Planing? @relation(fields: [planingId], references: [id])
 }
 
 model Notification {
   id        Int      @id @default(autoincrement())
   parentId  Int
-  parent    Parent   @relation(fields: [parentId], references: [id])
   title     String
   message   String
-  type      String // 'absence', 'taf', 'event'
+  type      String
   createdAt DateTime @default(now())
   read      Boolean  @default(false)
+  parent    Parent   @relation(fields: [parentId], references: [id])
 }
 
 model Note {
@@ -241,4 +236,20 @@ model Note {
   noteepre       Float?
   codeTypeEpre   Int?
   numEpre        Int?
+}
+
+model NoteDevoir {
+  id            Int      @id @default(autoincrement())
+  as            String?
+  libperiodexam String?
+  libTypeEpr    String?
+  studentId     Int?
+  subjectId     Int?
+  classId       Int?
+  noteepre      Float?
+  createdAt     DateTime @default(now())
+  isAbsent      Boolean? @default(false)
+  class         Class?   @relation(fields: [classId], references: [id])
+  student       Student? @relation(fields: [studentId], references: [id])
+  subject       Subject? @relation(fields: [subjectId], references: [id])
 }
