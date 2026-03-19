@@ -21,6 +21,8 @@ interface Teacher {
     name: string;
 }
 
+const HOURS = ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00"];
+
 export default function NewAbsencePage() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
@@ -269,15 +271,20 @@ export default function NewAbsencePage() {
                             {/* heure */}
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-slate-700">Heure</label>
-                                <input
-                                    type="time"
+                                <select
                                     name="hour"
                                     required
                                     value={hourFilter}
                                     onChange={(e) => setHourFilter(e.target.value)}
-                                    placeholder="Ex: 08:00"
                                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
-                                />
+                                >
+                                    <option value="">Sélectionner l'heure...</option>
+                                    {HOURS.map((h) => (
+                                        <option key={h} value={h}>
+                                            {h}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
                         </div>
 

@@ -17,6 +17,8 @@ interface Classe{
     students: Student[];
 }
 
+const HOURS = ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30"];
+
 
 export default function StudentDetailsPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
@@ -208,14 +210,19 @@ export default function StudentDetailsPage({ params }: { params: Promise<{ id: s
                             {/* heure */}
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-slate-700">Heure</label>
-                                <input
-                                    type="time"
+                                <select
                                     name="hour"
                                     required
                                     defaultValue={absence.hour}
-                                    placeholder="Ex: 08:00"
                                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
-                                />
+                                >
+                                    <option value="">Sélectionner l'heure...</option>
+                                    {HOURS.map((h) => (
+                                        <option key={h} value={h}>
+                                            {h}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
                             {/** Description 
                             <div className="space-y-2">

@@ -8,6 +8,7 @@ export async function GET(request: Request) {
     const classIdStr = searchParams.get('classId');
     const dateStr = searchParams.get('date');
     const hourStr = searchParams.get('hour');
+    const teacherIdStr = searchParams.get('teacherId');
 
     if (classIdStr && dateStr && hourStr) {
         const classId = Number(classIdStr);
@@ -36,13 +37,20 @@ export async function GET(request: Request) {
         date1 = (new Date().getFullYear() - 1) + "-09-01";
         date2 = (new Date().getFullYear()) + "-06-30";
     }
+
+    const where: any = {
+        dateAbsence: {
+            gte: new Date(date1),
+            lte: new Date(date2),
+        }
+    };
+
+    if (teacherIdStr) {
+        where.teacherId = Number(teacherIdStr);
+    }
+
     const absence = await prisma.absence.findMany({
-        where: {
-            dateAbsence: {
-                gte: new Date(date1),
-                lte: new Date(date2),
-            }
-        },
+        where,
         orderBy: {
             dateAbsence: 'desc'
         },

@@ -35,10 +35,22 @@ export default function StudentsPage() {
         fetchData();
     }, []);
 
+    const getCookie = (name: string) => {
+        if (typeof document === "undefined") return null;
+        return document.cookie
+            .split("; ")
+            .find(row => row.startsWith(name + "="))
+            ?.split("=")[1] ?? null;
+    };
+
     const fetchData = async () => {
         try {
+            const role = getCookie("user-role");
+            const id = getCookie("user-id");
+            const absencesUrl = (role !== 'admin' && id) ? `/api/absences?teacherId=${id}` : '/api/absences';
+
             const [absencesRes,classesRes] = await Promise.all([
-                fetch('/api/absences'),
+                fetch(absencesUrl),
                 fetch('/api/classes'),
             ]);
 
