@@ -35,6 +35,8 @@ model Student {
   sessionEvaluations SessionEvaluation[]
   classe             Class?              @relation(fields: [classId], references: [id])
   parent             Parent?             @relation(fields: [parentId], references: [id])
+
+  chats Chat[]
 }
 
 model Parent {
@@ -95,6 +97,8 @@ model Class {
   students    Student[]
   tafs        Taf[]
   teachers    Teacher[]    @relation("ClassToTeacher")
+
+  chats Chat[]
 }
 
 model Room {
@@ -252,4 +256,14 @@ model NoteDevoir {
   class         Class?   @relation(fields: [classId], references: [id])
   student       Student? @relation(fields: [studentId], references: [id])
   subject       Subject? @relation(fields: [subjectId], references: [id])
+}
+
+model Chat{
+  id            Int      @id @default(autoincrement())
+  studentId     Int?
+  student       Student? @relation(fields: [studentId], references: [id])
+  sendTo        Int?
+  class         Class?   @relation(fields: [sendTo], references: [id])
+  message       String?
+  createdAt     DateTime @default(now())
 }

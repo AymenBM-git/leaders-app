@@ -21,7 +21,8 @@ import {
     BookA,
     NotebookText,
     NotebookPen,
-    LibraryBig
+    LibraryBig,
+    MessageSquare
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
@@ -136,6 +137,13 @@ const routes = [
         href: "/schedule",
         color: "text-indigo-500",
         user: ["admin", "prof"]
+    },
+    {
+        label: "Chat",
+        icon: MessageSquare,
+        href: "/chat",
+        color: "text-indigo-500",
+        user: ["admin"]
     },
 ];
 
