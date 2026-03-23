@@ -15,6 +15,7 @@ import {
     FileText,
     TrendingUp
 } from 'lucide-react';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface GradeData {
@@ -149,6 +150,15 @@ const VisualisationNotesPage = () => {
                     </h1>
                     <p className="text-slate-500 font-medium italic">Consultez les performances de vos élèves en un coup d'œil.</p>
                 </div>
+
+                <Link
+                    href="/notesDevoirs/saisie"
+                    className="flex items-center gap-2 bg-white hover:bg-slate-50 text-indigo-600 border-2 border-indigo-100 px-6 py-3 rounded-2xl font-bold shadow-sm transition-all hover:shadow-md active:scale-95"
+                >
+                    <FileText className="w-5 h-5" />
+                    <span>Saisie Notes</span>
+                </Link>
+
             </div>
 
             {/* Filters */}

@@ -58,11 +58,11 @@ export async function GET(request: Request) {
         const existingTypes = Array.from(new Set(allNotes.map(n => n.libTypeEpr))).filter(Boolean) as string[];
         
         // Define the preferred order and filter by presence
-        const preferredOrder = ['DC1', 'DC2', 'TP', 'Orale', 'DS'];
+        const preferredOrder = ['فرض مــراقبة1', 'فرض مــراقبة2', 'اشغال تطبيقية', 'شفوي', 'فرض تأليفي'];
         const examTypes = preferredOrder.filter(type => existingTypes.includes(type));
         
         // Add any other types found that are not in the preferred order
-        existingTypes.forEach(type => {
+        existingTypes.forEach(type => { 
             if (!examTypes.includes(type)) {
                 examTypes.push(type);
             }

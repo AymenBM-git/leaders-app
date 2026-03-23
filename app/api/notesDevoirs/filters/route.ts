@@ -47,8 +47,8 @@ export async function GET() {
         return NextResponse.json({
             classes: classes.map(c => ({ id: c.id, name: c.name, level: c.level })),
             subjects: subjects.map(s => ({ id: s.id, name: s.name })),
-            periods: ['Trimestre1', 'Trimestre2', 'Trimestre3'],
-            examTypes: ['DC1', 'DC2', 'TP', 'Orale', 'DS'],
+            periods: ['الثلاثي الأول', 'الثلاثي الثاني', 'الثلاثي الثالث'],
+            examTypes: ['فرض مــراقبة1', 'فرض مــراقبة2', 'اشغال تطبيقية', 'شفوي', 'فرض تأليفي'],
             academicYears: await getAcademicYears()
         });
     } catch (error: any) {
