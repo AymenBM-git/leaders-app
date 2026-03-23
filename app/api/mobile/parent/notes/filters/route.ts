@@ -84,7 +84,7 @@ export async function GET(request: Request) {
         console.log(`[Filters API] Final subjects identified: ${subjects.map(s => s.name).join(', ')}`);
 
         // Standard periods
-        const periods = ['Trimestre1', 'Trimestre2', 'Trimestre3'];
+        const periods = ['الثلاثي الأول', 'الثلاثي الثاني', 'الثلاثي الثالث'];
 
         // Current AS
         const now = new Date();
