@@ -20,21 +20,42 @@ export default function NewStudentPage() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [subjects, setSubjects] = useState<Subject[]>([]);
-    const [classes, setClasses] = useState<Subject[]>([]);
-    //const [anneeScolaires, setAnneeScolaires] = useState<string[]>([]);
+    const [classes, setClasses] = useState<any[]>([]);
+    const [userRole, setUserRole] = useState<string | null>(null);
+    const [userId, setUserId] = useState<string | null>(null);
+
+    const getCookie = (name: string) => {
+        if (typeof document === "undefined") return null;
+        return document.cookie
+            .split("; ")
+            .find(row => row.startsWith(name + "="))
+            ?.split("=")[1] ?? null;
+    };
 
     useEffect(() => {
+        const role = getCookie("user-role");
+        const idStr = getCookie("user-id");
+        setUserRole(role);
+        setUserId(idStr);
+
         const fetchData = async () => {
             try {
+                const isTeacher = role !== 'admin';
+                const classesUrl = isTeacher && idStr ? `/api/classes/teacher/${idStr}` : '/api/classes';
+                const subjectsUrl = isTeacher && idStr ? `/api/teachers/${idStr}` : '/api/subjects';
 
                 const [subjectsRes, classesRes] = await Promise.all([
-                    fetch('/api/subjects'),
-                    fetch('/api/classes'),
+                    fetch(subjectsUrl),
+                    fetch(classesUrl),
                 ]);
 
                 if (subjectsRes.ok && classesRes.ok) {
                     const subjectsData = await subjectsRes.json();
-                    setSubjects(subjectsData);
+                    if (isTeacher) {
+                        setSubjects(subjectsData.subject ? [subjectsData.subject] : []);
+                    } else {
+                        setSubjects(subjectsData);
+                    }
                     const classesData = await classesRes.json();
                     setClasses(classesData);
                 }
@@ -51,17 +72,10 @@ export default function NewStudentPage() {
         setIsLoading(true);
 
         const formData = new FormData(e.currentTarget);
-
         try {
             const res = await fetch("/api/tafs", {
                 method: "POST",
-                body: JSON.stringify({ 
-                    subjectId: formData.get("subjectId"), 
-                    type: formData.get("type"), 
-                    dateTaf: formData.get("dateTaf"), 
-                    description: formData.get("description"),
-                    classId: formData.get("classId")
-                }),
+                body: formData
             });
 
             if (!res.ok) throw new Error("Erreur lors de la création");
@@ -108,6 +122,7 @@ export default function NewStudentPage() {
                                 <label className="text-sm font-medium text-slate-700">Matière</label>
                                 <select
                                     name="subjectId"
+                                    defaultValue={subjects.length === 1 ? subjects[0].id : ""}
                                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                                 >
                                     <option value="">Sélectionner une Matière...</option>
@@ -126,8 +141,12 @@ export default function NewStudentPage() {
                                     <option value="">Sélectionner une Classe...</option>
                                     {classes.map((p) => (
                                         <option key={p.id} value={p.id}>
-                                            {p.id===1 ? "السابعة أساسي " + p.name : (p.id===2 ? "الثامنة أساسي " + p.name : (p.id===3 ? "التاسعة أساسي " + p.name : p.name))}
-                                            </option>
+                                            {p.level ? (
+                                                (p.level === "1" ? "السابعة أساسي " :
+                                                    p.level === "2" ? "الثامنة أساسي " :
+                                                        p.level === "3" ? "التاسعة أساسي " : "") + p.name
+                                            ) : p.name}
+                                        </option>
                                     ))}
                                 </select>
                             </div>
@@ -156,6 +175,16 @@ export default function NewStudentPage() {
                                 <textarea
                                     name="description"
                                     placeholder="Ex: Description"
+                                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
+                                />
+                            </div>
+                            {/* Pièces jointes */}
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-slate-700">Pièces jointes</label>
+                                <input
+                                    type="file"
+                                    name="files"
+                                    multiple
                                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                                 />
                             </div>

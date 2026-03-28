@@ -19,6 +19,9 @@ interface Classe{
 interface Teacher {
     id: number;
     name: string;
+    subject?: {
+        name: string;
+    }
 }
 
 const HOURS = ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00"];
@@ -39,6 +42,9 @@ export default function NewAbsencePage() {
 
     const [userRole, setUserRole] = useState<string | null>(null);
     const [userId, setUserId] = useState<string | null>(null);
+    const [selectedTeacherId, setSelectedTeacherId] = useState<number | null>(null);
+    const [teacherSubject, setTeacherSubject] = useState<string>("");
+    const [allSchedules, setAllSchedules] = useState<any[]>([]);
 
     const getCookie = (name: string) => {
         if (typeof document === "undefined") return null;
@@ -56,10 +62,14 @@ export default function NewAbsencePage() {
 
         const fetchData = async () => {
             try {
+                const role = getCookie("user-role");
+                const idStr = getCookie("user-id");
                 const isTeacher = role !== 'admin';
-                const [classesRes, teachersRes] = await Promise.all([
-                    fetch('/api/classes'),
+                const classesUrl = isTeacher && idStr ? `/api/classes/teacher/${idStr}` : '/api/classes';
+                const [classesRes, teachersRes, schedulesRes] = await Promise.all([
+                    fetch(classesUrl),
                     fetch(isTeacher && idStr ? `/api/teachers/${idStr}` : '/api/teachers'),
+                    fetch('/api/schedule'),
                 ]);
 
                 if (classesRes.ok) {
@@ -70,6 +80,15 @@ export default function NewAbsencePage() {
                     const teachersData = await teachersRes.json();
                     const list = isTeacher ? [teachersData] : teachersData;
                     setTeachers(list);
+                    
+                    if (isTeacher && teachersData) {
+                        setTeacherSubject(teachersData.subject?.name || "");
+                        setSelectedTeacherId(Number(idStr));
+                    }
+                }
+                if (schedulesRes.ok) {
+                    const schedulesData = await schedulesRes.json();
+                    setAllSchedules(schedulesData);
                 }
             } catch (error) {
                 console.error("Error fetching data:", error);
@@ -77,6 +96,53 @@ export default function NewAbsencePage() {
         };
         fetchData();
     }, []);
+
+    // Effect to automatically set hour based on schedule
+    useEffect(() => {
+        const tId = userRole !== 'admin' ? userId : selectedTeacherId;
+        if (!selectedClassId || !tId || !allSchedules.length) {
+            // If no match, set current time if not already set
+            if (!hourFilter && allSchedules.length > 0) {
+                const now = new Date();
+                const hh = String(now.getHours()).padStart(2, '0');
+                const mm = now.getMinutes() < 30 ? "00" : "30";
+                setHourFilter(`${hh}:${mm}`);
+            }
+            return;
+        }
+
+        const now = new Date();
+        const selectedDate = new Date(dateFilter);
+        const days = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
+        const currentDay = days[selectedDate.getDay()];
+        const currentTime = now.getHours() + now.getMinutes() / 60;
+
+        const matchingSchedule = allSchedules.find(s => 
+            String(s.teacherId) === String(tId) && 
+            String(s.classId) === String(selectedClassId) && 
+            s.day === currentDay &&
+            (() => {
+                const [h, m] = s.start.split(":").map(Number);
+                const startTime = h + m / 60;
+                return currentTime >= startTime && currentTime < (startTime + (s.duration || 1));
+            })()
+        );
+
+        if (matchingSchedule) {
+            setHourFilter(matchingSchedule.start);
+        } else {
+            const hh = String(now.getHours()).padStart(2, '0');
+            const mm = now.getMinutes() < 30 ? "00" : "30";
+            // Check if current time is in HOURS list
+            const currentFormatted = `${hh}:${mm}`;
+            if (HOURS.includes(currentFormatted)) {
+                setHourFilter(currentFormatted);
+            } else {
+                // Default to empty or first hour if needed, but "l'heure actuelle" was requested
+                setHourFilter(currentFormatted);
+            }
+        }
+    }, [selectedClassId, userRole, userId, allSchedules, dateFilter, selectedTeacherId]);
 
     // Effect to fetch existing absences when class, date, or hour change
     useEffect(() => {
@@ -219,6 +285,12 @@ export default function NewAbsencePage() {
                                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm disabled:opacity-70 disabled:bg-slate-100"
                                     defaultValue={userRole !== 'admin' ? (userId || "") : ""}
                                     disabled={userRole !== 'admin'}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        setSelectedTeacherId(val ? Number(val) : null);
+                                        const t = teachers.find(teacher => String(teacher.id) === val);
+                                        setTeacherSubject(t?.subject?.name || "");
+                                    }}
                                 >
                                     <option value="">Sélectionner un enseignant...</option>
                                     {teachers.map((teacher) => {
@@ -234,6 +306,17 @@ export default function NewAbsencePage() {
                                     name="teacherId" 
                                     value={userRole !== 'admin' ? (userId || "") : ""} 
                                     disabled={userRole === 'admin'} 
+                                />
+                            </div>
+                            {/* Matière */}
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-slate-700">Matière</label>
+                                <input
+                                    type="text"
+                                    readOnly
+                                    value={teacherSubject}
+                                    placeholder="Matière de l'enseignant"
+                                    className="w-full px-4 py-2.5 bg-slate-100 border border-slate-200 rounded-lg outline-none text-sm text-slate-500 cursor-not-allowed"
                                 />
                             </div>
                             {/* classe */}

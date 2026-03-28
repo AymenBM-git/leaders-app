@@ -147,6 +147,8 @@ model Taf {
   description String?
   class       Class?    @relation(fields: [classId], references: [id])
   subject     Subject?  @relation(fields: [subjectId], references: [id])
+
+  files file[]
 }
 
 model Event {
@@ -210,6 +212,13 @@ model Ressouce {
   classId   Int?
   class     Class?   @relation(fields: [classId], references: [id])
   planing   Planing? @relation(fields: [planingId], references: [id])
+}
+
+model file {
+  id        Int      @id @default(autoincrement())
+  name      String?
+  tafId     Int?
+  taf       Taf?     @relation(fields: [tafId], references: [id])
 }
 
 model Notification {

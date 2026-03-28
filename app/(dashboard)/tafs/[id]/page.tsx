@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 interface Mat {
     id: number;
     name: string;
+    level?: string;
 }
 
 
@@ -19,15 +20,34 @@ export default function StudentDetailsPage({ params }: { params: Promise<{ id: s
     const [subjects, setSubjects] = useState<Mat[]>([]);
     const [classes, setClasses] = useState<Mat[]>([]);
 
+    const [userRole, setUserRole] = useState<string | null>(null);
+    const [userId, setUserId] = useState<string | null>(null);
+
+    const getCookie = (name: string) => {
+        if (typeof document === "undefined") return null;
+        return document.cookie
+            .split("; ")
+            .find(row => row.startsWith(name + "="))
+            ?.split("=")[1] ?? null;
+    };
+
     useEffect(() => {
+        const role = getCookie("user-role");
+        const idStr = getCookie("user-id");
+        setUserRole(role);
+        setUserId(idStr);
+
         const fetchData = async () => {
             setIsLoading(true);
             try {
+                const isTeacher = role !== 'admin';
+                const classesUrl = isTeacher && idStr ? `/api/classes/teacher/${idStr}` : '/api/classes';
+                const subjectsUrl = isTeacher && idStr ? `/api/teachers/${idStr}` : '/api/subjects';
 
                 const [tafRes, subjectsRes, classesRes] = await Promise.all([
                     fetch(`/api/tafs/${unwrappedParams.id}`),
-                    fetch('/api/subjects'),
-                    fetch('/api/classes'),
+                    fetch(subjectsUrl),
+                    fetch(classesUrl),
                 ]);
 
                 if (tafRes.ok && subjectsRes.ok && classesRes.ok) {
@@ -37,7 +57,11 @@ export default function StudentDetailsPage({ params }: { params: Promise<{ id: s
                         classesRes.json()
                     ]);
                     setTaf(tafData);
-                    setSubjects(subjectsData);
+                    if (isTeacher) {
+                        setSubjects(subjectsData.subject ? [subjectsData.subject] : []);
+                    } else {
+                        setSubjects(subjectsData);
+                    }
                     setClasses(classesData);
                 }
             } catch (error) {
@@ -51,23 +75,19 @@ export default function StudentDetailsPage({ params }: { params: Promise<{ id: s
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [filesToDelete, setFilesToDelete] = useState<number[]>([]);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsSubmitting(true);
 
         const formData = new FormData(e.currentTarget);
-
+        filesToDelete.forEach(id => formData.append("filesToDelete", String(id)));
 
         try {
             const res = await fetch(`/api/tafs/${unwrappedParams.id}`, {
                 method: 'PUT',
-                body: JSON.stringify({ 
-                    subjectId: formData.get("subjectId"), 
-                    classId: formData.get("classId"), 
-                    dateTaf: formData.get("dateTaf"), 
-                    type: formData.get("type"), 
-                    description: formData.get("description")}),
+                body: formData,
             });
 
             if (res.ok) {
@@ -167,7 +187,11 @@ export default function StudentDetailsPage({ params }: { params: Promise<{ id: s
                                     <option value="">Sélectionner une classe...</option>
                                     {classes.map((classe) => (
                                         <option key={classe.id} value={classe.id}>
-                                            {classe.id===1 ? "السابعة أساسي " + classe.name : (classe.id===2 ? "الثامنة أساسي " + classe.name : (classe.id===3 ? "التاسعة أساسي " + classe.name : classe.name))}
+                                            {classe.level ? (
+                                                (classe.level === "1" ? "السابعة أساسي " :
+                                                    classe.level === "2" ? "الثامنة أساسي " :
+                                                        classe.level === "3" ? "التاسعة أساسي " : "") + classe.name
+                                            ) : classe.name}
                                         </option>
                                     ))}
                                 </select>
@@ -203,6 +227,55 @@ export default function StudentDetailsPage({ params }: { params: Promise<{ id: s
                                     placeholder="Ex: Description"
                                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                                 />
+                            </div>
+
+                            {/* Pièces jointes actuelles */}
+                            {(taf.files && taf.files.length > 0) && (
+                                <div className="space-y-4 md:col-span-2">
+                                    <label className="text-sm font-medium text-slate-700">Pièces jointes actuelles</label>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        {taf.files.filter((f: any) => !filesToDelete.includes(f.id)).map((f: any) => (
+                                            <div key={f.id} className="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl group/file transition-all hover:border-slate-300">
+                                                <div className="flex items-center gap-2 truncate">
+                                                    <div className="p-2 bg-white rounded-lg border border-slate-100">
+                                                        <BookOpen className="w-3.5 h-3.5 text-slate-400" />
+                                                    </div>
+                                                    <a 
+                                                        href={`/uploads/tafs/${f.name}`} 
+                                                        target="_blank" 
+                                                        rel="noreferrer" 
+                                                        className="text-sm font-medium text-slate-600 hover:text-indigo-600 truncate transition-colors"
+                                                    >
+                                                        {f.name}
+                                                    </a>
+                                                </div>
+                                                <button 
+                                                    type="button" 
+                                                    onClick={() => setFilesToDelete([...filesToDelete, f.id])}
+                                                    className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-white rounded-lg transition-all shadow-sm"
+                                                    title="Supprimer cette pièce jointe"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        ))}
+                                        {taf.files.filter((f: any) => !filesToDelete.includes(f.id)).length === 0 && (
+                                            <div className="text-sm text-slate-400 italic">Toutes les pièces jointes existantes seront supprimées.</div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Ajouter des nouveaux fichiers */}
+                            <div className="space-y-2 md:col-span-2">
+                                <label className="text-sm font-medium text-slate-700">Ajouter des pièces jointes</label>
+                                <input
+                                    type="file"
+                                    name="files"
+                                    multiple
+                                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                                />
+                                <p className="text-[11px] text-slate-400">Vous pouvez sélectionner plusieurs fichiers à la fois.</p>
                             </div>
                         </div>
                     
