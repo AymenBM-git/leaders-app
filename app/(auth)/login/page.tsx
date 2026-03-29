@@ -197,6 +197,16 @@ export default function LoginPage() {
 
                 <div className="mt-auto text-center">
                     <p className="text-slate-400 text-sm">© 2025 Collège Les Leaders Boumhel. Tous droits réservés.</p>
+                    <p className="text-slate-400 text-sm">
+                        Télécharger l'application{" "}
+                        <a 
+                            href="/api/auth/apk" 
+                            className="text-indigo-600 hover:text-indigo-500 font-medium transition-colors underline-offset-4 hover:underline"
+                            download
+                        >
+                            Parent Mobile
+                        </a>.
+                    </p>
                 </div>
             </div>
 
