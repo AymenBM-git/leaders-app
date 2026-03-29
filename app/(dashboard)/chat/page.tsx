@@ -11,9 +11,11 @@ interface Message {
     message: string;
     createdAt: string;
     student: {
+        id: number;
         firstName: string;
         lastName: string;
         photo: string | null;
+        chatBlocked: boolean;
     } | null;
 }
 
@@ -30,6 +32,9 @@ export default function ChatPage() {
     const [newMessage, setNewMessage] = useState("");
     const [isLoading, setIsLoading] = useState(true);
     const [isSending, setIsSending] = useState(false);
+    const [isGlobalBlocked, setIsGlobalBlocked] = useState(false);
+    const [isClassBlocked, setIsClassBlocked] = useState(false);
+    const [blockedStudents, setBlockedStudents] = useState<Set<number>>(new Set());
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const scrollToBottom = () => {
@@ -42,7 +47,11 @@ export default function ChatPage() {
 
     useEffect(() => {
         fetchMessages();
-        const interval = setInterval(fetchMessages, 5000);
+        fetchSettings();
+        const interval = setInterval(() => {
+            fetchMessages();
+            fetchSettings();
+        }, 5000);
         return () => clearInterval(interval);
     }, [selectedClassId]);
 
@@ -64,10 +73,33 @@ export default function ChatPage() {
             if (res.ok) {
                 const data = await res.json();
                 setMessages(data);
+                
+                // Track blocked students from messages
+                const blocked = new Set<number>();
+                data.forEach((m: any) => {
+                    if (m.student?.chatBlocked) {
+                        blocked.add(m.studentId);
+                    }
+                });
+                setBlockedStudents(blocked);
+                
                 setIsLoading(false);
             }
         } catch (error) {
             console.error("Failed to fetch messages", error);
+        }
+    };
+
+    const fetchSettings = async () => {
+        try {
+            const res = await fetch(`/api/chat/settings?classId=${selectedClassId}`);
+            if (res.ok) {
+                const data = await res.json();
+                setIsGlobalBlocked(data.global);
+                setIsClassBlocked(data.classBlocked);
+            }
+        } catch (error) {
+            console.error("Failed to fetch settings", error);
         }
     };
 
@@ -112,6 +144,33 @@ export default function ChatPage() {
         }
     };
 
+    const handleToggleBlock = async (type: 'global' | 'class' | 'student', targetId: number | null, blocked: boolean) => {
+        try {
+            const res = await fetch('/api/chat/settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type, targetId, blocked })
+            });
+
+            if (res.ok) {
+                if (type === 'global') setIsGlobalBlocked(blocked);
+                if (type === 'class') setIsClassBlocked(blocked);
+                if (type === 'student' && targetId) {
+                    setBlockedStudents(prev => {
+                        const next = new Set(prev);
+                        if (blocked) next.add(targetId);
+                        else next.delete(targetId);
+                        return next;
+                    });
+                    // Refresh messages to update all instances of this student
+                    fetchMessages();
+                }
+            }
+        } catch (error) {
+            console.error(`Failed to toggle ${type} block`, error);
+        }
+    };
+
     const formatClassName = (cls: Class) => {
         return (cls.level === "1") ? "السابعة أساسي " + cls.name : 
                (cls.level === "2") ? "الثامنة أساسي " + cls.name : 
@@ -143,6 +202,32 @@ export default function ChatPage() {
                             </optgroup>
                         </select>
                     </div>
+
+                    <button
+                        onClick={() => handleToggleBlock('global', null, !isGlobalBlocked)}
+                        className={`px-4 py-2.5 rounded-xl font-medium transition-all flex items-center gap-2 ${
+                            isGlobalBlocked 
+                            ? 'bg-red-100 text-red-600 hover:bg-red-200' 
+                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        }`}
+                    >
+                        <Globe className="w-4 h-4" />
+                        {isGlobalBlocked ? "Chat Global Bloqué" : "Bloquer Global"}
+                    </button>
+
+                    {selectedClassId !== 'global' && (
+                        <button
+                            onClick={() => handleToggleBlock('class', Number(selectedClassId), !isClassBlocked)}
+                            className={`px-4 py-2.5 rounded-xl font-medium transition-all flex items-center gap-2 ${
+                                isClassBlocked 
+                                ? 'bg-red-100 text-red-600 hover:bg-red-200' 
+                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                            }`}
+                        >
+                            <Users className="w-4 h-4" />
+                            {isClassBlocked ? "Classe Bloquée" : "Bloquer Classe"}
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -201,12 +286,25 @@ export default function ChatPage() {
                                             </div>
 
                                             {!isAdmin && (
-                                                <button
-                                                    onClick={() => handleDeleteMessage(msg.id)}
-                                                    className="opacity-0 group-hover:opacity-100 p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
+                                                <div className="flex flex-col items-center gap-2">
+                                                    <button
+                                                        onClick={() => handleToggleBlock('student', msg.studentId, !blockedStudents.has(msg.studentId!))}
+                                                        className={`opacity-0 group-hover:opacity-100 p-2 rounded-lg transition-all ${
+                                                            blockedStudents.has(msg.studentId!)
+                                                            ? 'text-red-600 bg-red-50 hover:bg-red-100'
+                                                            : 'text-slate-400 hover:text-red-500 hover:bg-red-50'
+                                                        }`}
+                                                        title={blockedStudents.has(msg.studentId!) ? "Débloquer l'élève" : "Bloquer l'élève"}
+                                                    >
+                                                        <User className={`w-4 h-4 ${blockedStudents.has(msg.studentId!) ? 'fill-current' : ''}`} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteMessage(msg.id)}
+                                                        className="opacity-0 group-hover:opacity-100 p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
                                             )}
                                         </div>
                                     </div>

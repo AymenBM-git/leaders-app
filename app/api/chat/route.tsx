@@ -13,9 +13,11 @@ export async function GET(request: Request) {
             include: {
                 student: {
                     select: {
+                        id: true,
                         firstName: true,
                         lastName: true,
                         photo: true,
+                        chatBlocked: true,
                     }
                 }
             },

@@ -11,11 +11,29 @@ export async function GET(request: Request) {
             return NextResponse.json({ error: "studentId is required" }, { status: 400 });
         }
 
+        // Check blocks
+        const globalBlock = await prisma.globalSetting.findUnique({ where: { key: 'chat_blocked_global' } });
+        const isGlobalBlocked = globalBlock?.value === 'true';
+
+        const student = await prisma.student.findUnique({
+            where: { id: Number(studentId) },
+            select: { chatBlocked: true, classId: true }
+        });
+        const isStudentBlocked = student?.chatBlocked || false;
+
+        let isClassBlocked = false;
+        const targetClassId = classId ? Number(classId) : student?.classId;
+        if (targetClassId) {
+            const cls = await prisma.class.findUnique({
+                where: { id: targetClassId },
+                select: { chatBlocked: true }
+            });
+            isClassBlocked = cls?.chatBlocked || false;
+        }
+
         const messages = await prisma.chat.findMany({
             where: {
-                OR: [
-                    { sendTo: classId ? Number(classId) : null },
-                ]
+                sendTo: classId ? Number(classId) : null
             },
             include: {
                 student: {
@@ -31,7 +49,11 @@ export async function GET(request: Request) {
             }
         });
 
-        return NextResponse.json(messages);
+        return NextResponse.json({
+            messages,
+            isBlocked: isGlobalBlocked || isClassBlocked || isStudentBlocked,
+            blockReason: isGlobalBlocked ? 'global' : (isClassBlocked ? 'class' : (isStudentBlocked ? 'student' : null))
+        });
     } catch (error) {
         console.error("Fetch chat messages error:", error);
         return NextResponse.json({ error: "Internal server error" }, { status: 500 });
@@ -45,6 +67,31 @@ export async function POST(request: Request) {
 
         if (!studentId || !message) {
             return NextResponse.json({ error: "studentId and message are required" }, { status: 400 });
+        }
+
+        // Check blocks before posting
+        const globalBlock = await prisma.globalSetting.findUnique({ where: { key: 'chat_blocked_global' } });
+        if (globalBlock?.value === 'true') {
+            return NextResponse.json({ error: "Le chat global est désactivé" }, { status: 403 });
+        }
+
+        const student = await prisma.student.findUnique({
+            where: { id: Number(studentId) },
+            select: { chatBlocked: true, classId: true }
+        });
+        if (student?.chatBlocked) {
+            return NextResponse.json({ error: "Votre accès au chat a été bloqué" }, { status: 403 });
+        }
+
+        const targetClassId = sendTo ? Number(sendTo) : student?.classId;
+        if (targetClassId) {
+            const cls = await prisma.class.findUnique({
+                where: { id: targetClassId },
+                select: { chatBlocked: true }
+            });
+            if (cls?.chatBlocked) {
+                return NextResponse.json({ error: "Le chat de cette classe est désactivé" }, { status: 403 });
+            }
         }
 
         const newMessage = await prisma.chat.create({

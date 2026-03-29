@@ -37,6 +37,7 @@ model Student {
   parent             Parent?             @relation(fields: [parentId], references: [id])
 
   chats Chat[]
+  chatBlocked Boolean? @default(false)
 }
 
 model Parent {
@@ -99,6 +100,7 @@ model Class {
   teachers    Teacher[]    @relation("ClassToTeacher")
 
   chats Chat[]
+  chatBlocked Boolean? @default(false)
 }
 
 model Room {
@@ -275,4 +277,10 @@ model Chat{
   class         Class?   @relation(fields: [sendTo], references: [id])
   message       String?
   createdAt     DateTime @default(now())
+}
+
+model GlobalSetting {
+  id    Int     @id @default(autoincrement())
+  key   String  @unique
+  value String
 }
