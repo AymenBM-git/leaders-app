@@ -124,10 +124,25 @@ export default function SchedulePage() {
     };
 
     const [role, setRole] = useState('');
+    const [userId, setUserId] = useState('');
 
     useEffect(() => {
         setRole(getCookie("user-role") ?? "N/A");
+        setUserId(getCookie("user-id") ?? "");
     }, []);
+
+    useEffect(() => {
+        if (role === 'prof' && userId) {
+            setViewMode("teacher");
+            setSelectedId(userId);
+
+            const now = new Date();
+            const year = now.getFullYear();
+            const currentYear = now.getMonth() >= 6 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
+            setSelectedAS(currentYear);
+        }
+    }, [role, userId]);
+
     let isReadOnly = role !== 'admin';
 
     const filteredEntries = useMemo(() => {
@@ -369,64 +384,74 @@ export default function SchedulePage() {
                 </div>
 
                 {/** Annee Scolaire */}
-                <div className="flex flex-wrap items-center gap-6">
-                    <label className="text-l mx-6 font-medium text-slate-700">Année Scolaire</label>
-                    <select
-                        value={selectedAS}
-                        name="as"
-                        onChange={handleAnneeScolaireChange}
-                        className="p-2.5 bg-white border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm font-medium text-slate-700 min-w-[200px]"
-                    >
+                {role !== 'prof' && (
+                    <div className="flex flex-wrap items-center gap-6">
+                        <label className="text-l mx-6 font-medium text-slate-700">Année Scolaire</label>
+                        <select
+                            value={selectedAS}
+                            name="as"
+                            onChange={handleAnneeScolaireChange}
+                            className="p-2.5 bg-white border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm font-medium text-slate-700 min-w-[200px]"
+                        >
 
-                        {
-                            anneeScolaires.map((as, index) => <option key={index} value={as}>{as}</option>)
-                        }
-                    </select>
-                </div>
+                            {
+                                anneeScolaires.map((as, index) => <option key={index} value={as}>{as}</option>)
+                            }
+                        </select>
+                    </div>
+                )}
             </div><br />
             {/** Select View Mode et choix classe/enseignant/salle */}
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 shrink-0 no-print">
                 <div className="flex flex-wrap items-center gap-4">
                     {/* View Switcher */}
-                    <div className="bg-slate-100 p-1 rounded-xl flex items-center">
-                        <button
-                            onClick={() => { setViewMode("class"); setSelectedId(""); }}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${viewMode === "class" ? "bg-white text-indigo-600 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
-                        >
-                            <Home className="w-4 h-4 inline-block mr-2" />
-                            Classe
-                        </button>
-                        <button
-                            onClick={() => { setViewMode("teacher"); setSelectedId(""); }}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${viewMode === "teacher" ? "bg-white text-indigo-600 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
-                        >
-                            <User className="w-4 h-4 inline-block mr-2" />
-                            Enseignant
-                        </button>
-                        <button
-                            onClick={() => { setViewMode("room"); setSelectedId(""); }}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${viewMode === "room" ? "bg-white text-indigo-600 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
-                        >
-                            <MapPin className="w-4 h-4 inline-block mr-2" />
-                            Salle
-                        </button>
-                    </div>
+                    {role !== 'prof' && (
+                        <div className="bg-slate-100 p-1 rounded-xl flex items-center">
+                            <button
+                                onClick={() => { setViewMode("class"); setSelectedId(""); }}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${viewMode === "class" ? "bg-white text-indigo-600 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+                            >
+                                <Home className="w-4 h-4 inline-block mr-2" />
+                                Classe
+                            </button>
+                            <button
+                                onClick={() => { setViewMode("teacher"); setSelectedId(""); }}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${viewMode === "teacher" ? "bg-white text-indigo-600 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+                            >
+                                <User className="w-4 h-4 inline-block mr-2" />
+                                Enseignant
+                            </button>
+                            <button
+                                onClick={() => { setViewMode("room"); setSelectedId(""); }}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${viewMode === "room" ? "bg-white text-indigo-600 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+                            >
+                                <MapPin className="w-4 h-4 inline-block mr-2" />
+                                Salle
+                            </button>
+                        </div>
+                    )}
 
                     {/* Select Classe, Enseignant, Salle : selon view mode */}
-                    <select
-                        value={selectedId}
-                        onChange={(e) => setSelectedId(e.target.value)}
-                        className="p-2.5 bg-white border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm font-medium text-slate-700 min-w-[200px]"
-                    >
-                        <option value="">Sélectionner {viewMode === "class" ? "une classe" : viewMode === "teacher" ? "un enseignant" : "une salle"}...</option>
-                        {viewMode === "class" ? (
-                            classes.map(c => <option key={c.id} value={c.id}>{(c.level === "1") ? `السابعة أساسي ${c.name}` : (c.level === "2") ? `الثامنة أساسي ${c.name}` : (c.level === "3") ? `التاسعة أساسي ${c.name}` : ""}</option>)
-                        ) : viewMode === "teacher" ? (
-                            teachers.map(t => <option key={t.id} value={t.id}>{t.name}</option>)
-                        ) : (
-                            rooms.map(r => <option key={r.id} value={r.id}>{r.name}</option>)
-                        )}
-                    </select>
+                    {role !== 'prof' ? (
+                        <select
+                            value={selectedId}
+                            onChange={(e) => setSelectedId(e.target.value)}
+                            className="p-2.5 bg-white border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm font-medium text-slate-700 min-w-[200px]"
+                        >
+                            <option value="">Sélectionner {viewMode === "class" ? "une classe" : viewMode === "teacher" ? "un enseignant" : "une salle"}...</option>
+                            {viewMode === "class" ? (
+                                classes.map(c => <option key={c.id} value={c.id}>{(c.level === "1") ? `السابعة أساسي ${c.name}` : (c.level === "2") ? `الثامنة أساسي ${c.name}` : (c.level === "3") ? `التاسعة أساسي ${c.name}` : ""}</option>)
+                            ) : viewMode === "teacher" ? (
+                                teachers.map(t => <option key={t.id} value={t.id}>{t.name}</option>)
+                            ) : (
+                                rooms.map(r => <option key={r.id} value={r.id}>{r.name}</option>)
+                            )}
+                        </select>
+                    ) : (
+                        <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-indigo-600">
+                             {teachers.find(t => String(t.id) === selectedId)?.name || "Mon Emploi du Temps"}
+                        </div>
+                    )}
                     {/** Button Ajouter un cours apres choix classe/enseignant/salle */}
                     {!isReadOnly && <button
                         onClick={() => {
