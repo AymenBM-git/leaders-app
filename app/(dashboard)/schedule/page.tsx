@@ -266,26 +266,26 @@ export default function SchedulePage() {
                         <p className="text-lg font-bold text-slate-700 mt-1">
                             {viewMode === "class" ? "Classe : " : viewMode === "teacher" ? "Enseignant : " : "Salle : "}
                             {selectedId ? (
-                            viewMode === "class" ? (
-                                (() => {
-                                const c = classes.find(c => String(c.id) === selectedId);
-                                if (!c) return "Aucun sélectionné";
+                                viewMode === "class" ? (
+                                    (() => {
+                                        const c = classes.find(c => String(c.id) === selectedId);
+                                        if (!c) return "Aucun sélectionné";
 
-                                const levels: Record<string, string> = {
-                                    "1": "السابعة أساسي",
-                                    "2": "الثامنة أساسي",
-                                    "3": "التاسعة أساسي",
-                                };
+                                        const levels: Record<string, string> = {
+                                            "1": "السابعة أساسي",
+                                            "2": "الثامنة أساسي",
+                                            "3": "التاسعة أساسي",
+                                        };
 
-                                return `${levels[c.level]} ${c.name}`;
-                                })()
-                            ) : viewMode === "teacher" ? (
-                                teachers.find(t => String(t.id) === selectedId)?.name ?? "Aucun sélectionné"
+                                        return `${levels[c.level]} ${c.name}`;
+                                    })()
+                                ) : viewMode === "teacher" ? (
+                                    teachers.find(t => String(t.id) === selectedId)?.name ?? "Aucun sélectionné"
+                                ) : (
+                                    rooms.find(r => String(r.id) === selectedId)?.name ?? "Aucun sélectionné"
+                                )
                             ) : (
-                                rooms.find(r => String(r.id) === selectedId)?.name ?? "Aucun sélectionné"
-                            )
-                            ) : (
-                            "Aucun sélectionné"
+                                "Aucun sélectionné"
                             )}
 
                         </p>
@@ -449,7 +449,7 @@ export default function SchedulePage() {
                         </select>
                     ) : (
                         <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-indigo-600">
-                             {teachers.find(t => String(t.id) === selectedId)?.name || "Mon Emploi du Temps"}
+                            {teachers.find(t => String(t.id) === selectedId)?.name || "Mon Emploi du Temps"}
                         </div>
                     )}
                     {/** Button Ajouter un cours apres choix classe/enseignant/salle */}

@@ -5,10 +5,18 @@ import { Search, Plus, Filter, Eye, Trash2, Loader2, CreditCard, User } from "lu
 import Link from "next/link";
 import { motion } from "framer-motion";
 
+interface PaymentLine {
+    id: number;
+    paymentId: number;
+    amount: number;
+    title: string;
+    type: string;
+    numCheque: string | null;
+}
+
 interface Payment {
     id: number;
-    amount: number;
-    type: string;
+    num: string | null;
     studentId: number;
     student: {
         id: number;
@@ -16,8 +24,8 @@ interface Payment {
         lastName: string;
     } | null;
     as: string;
-    title: string | null;
     paymentDate: string;
+    paymentLines: PaymentLine[];
 }
 
 export default function StudentsPage() {
@@ -30,6 +38,7 @@ export default function StudentsPage() {
         return now.getMonth() >= 8 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
     });
     const [anneeScolaires, setAnneeScolaires] = useState<string[]>([]);
+    const [selectedMonth, setSelectedMonth] = useState<string>("");
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -83,7 +92,9 @@ export default function StudentsPage() {
     const filteredPayments = payments.filter(payment => {
         const matchesSearch = `${payment.student?.firstName || ''} ${payment.student?.lastName || ''}`.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesAS = selectedAS ? payment.as === selectedAS : true;
-        return matchesSearch && matchesAS;
+        const paymentMonth = new Date(payment.paymentDate).getMonth() + 1; // 1-12
+        const matchesMonth = selectedMonth ? paymentMonth === parseInt(selectedMonth) : true;
+        return matchesSearch && matchesAS && matchesMonth;
     });
 
     if (isLoading) {
@@ -122,22 +133,46 @@ export default function StudentsPage() {
                     />
                 </div>
                 {/* Annee Scolaire Filter */}
-                <div className="flex gap-2 w-full md:w-auto">
-                    <div className="relative">
-                    <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4" />
-                    <select
-                        value={selectedAS}
-                        name="as"
-                        onChange={(e) => setSelectedAS(e.target.value)}
-                        className="appearance-none pl-10 pr-8 py-2 bg-slate-50 text-slate-600 rounded-xl font-medium hover:bg-slate-100 border border-slate-200/50 outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer"
-                    >
-
-                        {
-                            anneeScolaires.map((as, index) => <option key={index} value={as}>{as}</option>)
-                        }
-                    </select>
+                    <div className="flex gap-2 w-full md:w-auto">
+                        <div className="relative">
+                        <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4" />
+                        <select
+                            value={selectedAS}
+                            name="as"
+                            onChange={(e) => setSelectedAS(e.target.value)}
+                            className="appearance-none pl-10 pr-8 py-2 bg-slate-50 text-slate-600 rounded-xl font-medium hover:bg-slate-100 border border-slate-200/50 outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer"
+                        >
+                        
+                            {
+                                anneeScolaires.map((as, index) => <option key={index} value={as}>{as}</option>)
+                            }
+                        </select>
+                        </div>
+                        {/* Month Filter */}
+                        <div className="relative">
+                        <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4" />
+                        <select
+                            value={selectedMonth}
+                            name="month"
+                            onChange={(e) => setSelectedMonth(e.target.value)}
+                            className="appearance-none pl-10 pr-8 py-2 bg-slate-50 text-slate-600 rounded-xl font-medium hover:bg-slate-100 border border-slate-200/50 outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer"
+                        >
+                        <option value="">Tous les mois</option>
+                        <option value="1">Janvier</option>
+                        <option value="2">Février</option>
+                        <option value="3">Mars</option>
+                        <option value="4">Avril</option>
+                        <option value="5">Mai</option>
+                        <option value="6">Juin</option>
+                        <option value="7">Juillet</option>
+                        <option value="8">Août</option>
+                        <option value="9">Septembre</option>
+                        <option value="10">Octobre</option>
+                        <option value="11">Novembre</option>
+                        <option value="12">Décembre</option>
+                        </select>
+                        </div>
                     </div>
-                </div>
             </div>
 
             {/* Table */}
@@ -147,16 +182,18 @@ export default function StudentsPage() {
                         {/* Entete tableau */}
                         <thead>
                             <tr className="bg-slate-50/50 border-b border-slate-100">
+                                <th className="p-4 text-xs font-semibold uppercase text-slate-500 tracking-wider">N° Paiement</th>
                                 <th className="p-4 text-xs font-semibold uppercase text-slate-500 tracking-wider">Elève</th>
                                 <th className="p-4 text-xs font-semibold uppercase text-slate-500 tracking-wider">Titre</th>
                                 <th className="p-4 text-xs font-semibold uppercase text-slate-500 tracking-wider">Montant</th>
-                                <th className="p-4 text-xs font-semibold uppercase text-slate-500 tracking-wider">Total Payer</th>
+                                <th className="p-4 text-xs font-semibold uppercase text-slate-500 tracking-wider">Total Payé</th>
                                 <th className="p-4 text-xs font-semibold uppercase text-slate-500 tracking-wider">Date Payement</th>
                                 <th className="p-4 text-xs font-semibold uppercase text-slate-500 tracking-wider text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
                             {filteredPayments.map((payment, index) => {
+                                const totalAmount = payment.paymentLines?.reduce((sum, line) => sum + (line.amount || 0), 0) || 0;
 
                                 return (
                                     <motion.tr
@@ -166,6 +203,12 @@ export default function StudentsPage() {
                                         transition={{ delay: index * 0.05 }}
                                         className="hover:bg-slate-50/80 transition-colors group"
                                     >
+                                        {/* N° Paiement */}
+                                        <td className="p-4">
+                                            <span className="text-sm font-semibold text-slate-700">
+                                                {payment.num || `-`}
+                                            </span>
+                                        </td>
                                         {/* student */}
                                         <td className="p-4">
                                             {payment.student ? (
@@ -181,18 +224,26 @@ export default function StudentsPage() {
                                         </td>
                                         {/* Titre */}
                                         <td className="p-4">
-                                            <span className="text-sm font-medium text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg">
-                                                {payment.title || 'N/A'}
-                                            </span>
+                                            <div className="flex flex-wrap gap-1">
+                                                {payment.paymentLines && payment.paymentLines.length > 0 ? (
+                                                    payment.paymentLines.map((line, idx) => (
+                                                        <span key={idx} className="text-xs font-semibold text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-lg">
+                                                            {line.title}
+                                                        </span>
+                                                    ))
+                                                ) : (
+                                                    <span className="text-slate-400 text-sm">N/A</span>
+                                                )}
+                                            </div>
                                         </td>
                                         {/* Montant */}
                                         <td className="p-4">
-                                            <span className="text-sm font-medium">{payment.amount}</span>
+                                            <span className="text-sm font-semibold text-slate-900">{totalAmount} DT</span>
                                         </td>
                                         {/* Total Payer */}
                                         <td className="p-4">
-                                            <span className="text-sm font-medium">
-                                                {totaux.find(item => item.studentId === payment.studentId && item.as === selectedAS)?._sum.amount || 0}
+                                            <span className="text-sm font-medium text-slate-500">
+                                                {totaux.find(item => item.studentId === payment.studentId && item.as === selectedAS)?._sum.amount || 0} DT
                                             </span>
                                         </td>
                                         {/* Date */}

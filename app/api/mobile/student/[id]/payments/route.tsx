@@ -17,6 +17,9 @@ export async function GET(request: Request, props: { params: Promise<{ id: strin
 
         const payments = await prisma.payment.findMany({
             where: { studentId: Number(params.id) },
+            include: {
+                paymentLines: true
+            },
             orderBy: { paymentDate: 'desc' }
         });
 

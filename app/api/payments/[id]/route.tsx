@@ -9,7 +9,8 @@ export async function GET(request: Request, props: { params: Promise<{ id: strin
             id: Number(params.id)
         },
         include: {
-            student: true
+            student: true,
+            paymentLines: true
         }
     })
     return NextResponse.json(payment)
@@ -18,28 +19,43 @@ export async function GET(request: Request, props: { params: Promise<{ id: strin
 export async function PUT(request: Request, props: { params: Promise<{ id: string }> }) {
     const params = await props.params;
     const json = await request.json()
-        const payment = await prisma.payment.update({
-            where: {
-                id: Number(params.id)
-            },
-            data: {
-                amount: Number(json.amount),
-                as: json.as,
-                type: json.type,
-                studentId: Number(json.studentId) || null,
-                title: json.title
+    const paymentId = Number(params.id)
+
+    const payment = await prisma.payment.update({
+        where: {
+            id: paymentId
+        },
+        data: {
+            num: json.num,
+            as: json.as,
+            studentId: Number(json.studentId) || null,
+            paymentLines: {
+                deleteMany: {},
+                create: (json.paymentLines || []).map((line: any) => ({
+                    amount: Number(line.amount),
+                    title: line.title,
+                    type: line.type,
+                    numCheque: line.type === 'cheque' ? line.numCheque : null
+                }))
             }
-        })
+        },
+        include: {
+            paymentLines: true
+        }
+    })
+
+    // Calculate total amount
+    const totalAmount = payment.paymentLines.reduce((acc, line) => acc + line.amount, 0);
 
     // 1. Log Activity
-                const cookiesStore = cookies();
-                const nameuser= String((await cookiesStore).get('user-name')?.value);
-                await prisma.activity.create({
-                    data: {
-                        nameUser: nameuser,
-                        description: `a modifié un payment de ${payment.amount} DT pour l'année scolaire ${payment.as}.`,
-                    }
-                });
+    const cookiesStore = cookies();
+    const nameuser= String((await cookiesStore).get('user-name')?.value);
+    await prisma.activity.create({
+        data: {
+            nameUser: nameuser,
+            description: `a modifié un payment (N° ${payment.num || payment.id}) de ${totalAmount} DT pour l'année scolaire ${payment.as}.`,
+        }
+    });
                 
     return NextResponse.json(payment)
 }
@@ -49,17 +65,23 @@ export async function DELETE(request: Request, props: { params: Promise<{ id: st
     const payment = await prisma.payment.delete({
         where: {
             id: Number(params.id)
+        },
+        include: {
+            paymentLines: true
         }
     })
 
+    // Calculate total amount
+    const totalAmount = payment.paymentLines.reduce((acc, line) => acc + line.amount, 0);
+
     // 1. Log Activity
-            const cookiesStore = cookies();
-            const nameuser= String((await cookiesStore).get('user-name')?.value);
-            await prisma.activity.create({
-                data: {
-                    nameUser: nameuser,
-                    description: `a supprimé un payment de ${payment.amount} DT pour l'année scolaire ${payment.as}.`,
-                }
-            });
+    const cookiesStore = cookies();
+    const nameuser= String((await cookiesStore).get('user-name')?.value);
+    await prisma.activity.create({
+        data: {
+            nameUser: nameuser,
+            description: `a supprimé un payment (N° ${payment.num || payment.id}) de ${totalAmount} DT pour l'année scolaire ${payment.as}.`,
+        }
+    });
     return NextResponse.json(payment)
 }

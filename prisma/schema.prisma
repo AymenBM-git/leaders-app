@@ -58,14 +58,23 @@ model Parent {
 }
 
 model Payment {
-  id          Int       @id @default(autoincrement())
-  amount      Float?
-  paymentDate DateTime? @default(now())
-  as          String?
-  type        String?
-  studentId   Int?
-  title       String?
-  student     Student?  @relation(fields: [studentId], references: [id])
+  id           Int           @id @default(autoincrement())
+  num          String?
+  paymentDate  DateTime?     @default(now())
+  as           String?
+  studentId    Int?
+  student      Student?      @relation(fields: [studentId], references: [id])
+  paymentLines PaymentLine[]
+}
+
+model PaymentLine {
+  id        Int      @id @default(autoincrement())
+  paymentId Int
+  amount    Float
+  title     String
+  type      String
+  numCheque String?
+  payment   Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
 }
 
 model Teacher {

@@ -8,65 +8,98 @@ export async function GET(req: Request) {
   const p = searchParams.get("p")
   const as = searchParams.get("as")
 
-  try{  
+  try {  
     if (p && as) {
         // cas : /route?p=2&as=2024/2025
         const whereClause: any = {};
 
         if (p !== "all") {
-        whereClause.studentId = Number(p)
+            whereClause.studentId = Number(p)
         }
         if (as !== "all") {
-        whereClause.as = as
+            whereClause.as = as
         }
-        const total = await prisma.payment.groupBy({
-            by: ['studentId','as'],
-            _sum: {
-            amount: true,
-            },
+
+        const payments = await prisma.payment.findMany({
             where: {
-            ...whereClause
+                ...whereClause
+            },
+            include: {
+                paymentLines: true
             }
-        }); 
+        });
+
+        // Group by studentId and as, summing up amounts from lines
+        const totalsMap = new Map<string, number>();
+        payments.forEach(pay => {
+            const key = `${pay.studentId || 0}-${pay.as || ''}`;
+            const sum = pay.paymentLines.reduce((acc, line) => acc + (line.amount || 0), 0);
+            totalsMap.set(key, (totalsMap.get(key) || 0) + sum);
+        });
+
+        const total = Array.from(totalsMap.entries()).map(([key, amount]) => {
+            const [studentId, as] = key.split('-');
+            return {
+                studentId: studentId !== "0" ? Number(studentId) : null,
+                as: as || null,
+                _sum: {
+                    amount
+                }
+            };
+        });
+
         return NextResponse.json(total);
     }
-        const payments = await prisma.payment.findMany({
-            include: {
-                student: true
-            }
-        })
-        return NextResponse.json(payments)
-        } catch (error) {
-        console.error(error);
-        return NextResponse.json({ error: 'Failed to fetch payment' }, { status: 500 });
-    }
+    const payments = await prisma.payment.findMany({
+        include: {
+            student: true,
+            paymentLines: true
+        }
+    })
+    return NextResponse.json(payments)
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: 'Failed to fetch payment' }, { status: 500 });
+  }
 }
 
 export async function POST(request: Request) {
     try {
-        const json = await request.json()//.formData()
+        const json = await request.json()
 
-        const { amount, type, studentId, as, title } = json
+        const { num, studentId, as, paymentLines } = json
 
         const payment = await prisma.payment.create({
             data: {
-                amount: Number(amount),
-                type,
+                num,
                 studentId: Number(studentId) || null,
                 as,
-                title
+                paymentLines: {
+                    create: (paymentLines || []).map((line: any) => ({
+                        amount: Number(line.amount),
+                        title: line.title,
+                        type: line.type,
+                        numCheque: line.type === 'cheque' ? line.numCheque : null
+                    }))
+                }
+            },
+            include: {
+                paymentLines: true
             }
         })
 
+        // Calculate total amount
+        const totalAmount = payment.paymentLines.reduce((acc, line) => acc + line.amount, 0);
+
         // 1. Log Activity
-            const cookiesStore = cookies();
-            const nameuser= String((await cookiesStore).get('user-name')?.value);
-            await prisma.activity.create({
-                data: {
-                    nameUser: nameuser,
-                    description: `a créé un payment de ${payment.amount} DT pour l'année scolaire ${payment.as}.`,
-                }
-            });
+        const cookiesStore = cookies();
+        const nameuser= String((await cookiesStore).get('user-name')?.value);
+        await prisma.activity.create({
+            data: {
+                nameUser: nameuser,
+                description: `a créé un payment (N° ${payment.num || payment.id}) de ${totalAmount} DT pour l'année scolaire ${payment.as}.`,
+            }
+        });
                 
         return NextResponse.json(payment)
     } catch (error) {

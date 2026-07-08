@@ -22,7 +22,8 @@ import {
     NotebookText,
     NotebookPen,
     LibraryBig,
-    MessageSquare
+    MessageSquare,
+    Wand2
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
@@ -138,6 +139,13 @@ const routes = [
         color: "text-indigo-500",
         user: ["admin", "prof"]
     },
+    /**/{
+        label: "Générateur EDT",
+        icon: Wand2,
+        href: "/schedule-generator",
+        color: "text-fuchsia-500",
+        user: ["admin"]
+    },/**/
     {
         label: "Chat",
         icon: MessageSquare,
