@@ -139,13 +139,13 @@ const routes = [
         color: "text-indigo-500",
         user: ["admin", "prof"]
     },
-    /**/{
+    /*{
         label: "Générateur EDT",
         icon: Wand2,
         href: "/schedule-generator",
         color: "text-fuchsia-500",
         user: ["admin"]
-    },/**/
+    },*/
     {
         label: "Chat",
         icon: MessageSquare,
