@@ -15,12 +15,18 @@ console.log("process.cwd():", process.cwd());
 console.log("DATABASE_URL length:", process.env.DATABASE_URL ? process.env.DATABASE_URL.length : "undefined");
 console.log("----------------------------");
 
+const databaseUrl = process.env.DATABASE_URL;
+
+if (!databaseUrl) {
+  throw new Error("DATABASE_URL is not defined in environment files");
+}
+
 export default defineConfig({
   schema: 'prisma/schema.prisma',
   migrations: {
     path: 'prisma/migrations',
   },
   datasource: {
-    url: env('DATABASE_URL'),
+    url: databaseUrl,
   },
 });
