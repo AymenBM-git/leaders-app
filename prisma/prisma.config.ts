@@ -1,6 +1,6 @@
 import { config } from 'dotenv';
 import path from 'path';
-import { defineConfig, env } from 'prisma/config';
+import { defineConfig } from 'prisma/config';
 
 // Load env files in order of priority (same as Next.js)
 const envs = ['.env.production.local', '.env.development.local', '.env.local', '.env.production', '.env.development', '.env'];
@@ -8,19 +8,13 @@ envs.forEach((file) => {
   config({ path: path.resolve(process.cwd(), file) });
 });
 
-console.log("--- DEBUG PRISMA CONFIG ---");
-console.log("process.cwd():", process.cwd());
-console.log("DATABASE_URL length:", process.env.DATABASE_URL ? process.env.DATABASE_URL.length : "undefined");
-console.log("DATABASE_URL value:", process.env.DATABASE_URL);
-console.log("----------------------------");
-
 const databaseUrl = process.env.DATABASE_URL;
 
 if (!databaseUrl) {
-  throw new Error("DATABASE_URL is not defined in environment files");
+  throw new Error('DATABASE_URL is not defined in environment files');
 }
 
-const configObj = defineConfig({
+export default defineConfig({
   schema: 'prisma/schema.prisma',
   migrations: {
     path: 'prisma/migrations',
@@ -29,7 +23,3 @@ const configObj = defineConfig({
     url: databaseUrl,
   },
 });
-
-console.log("Config object:", JSON.stringify(configObj, null, 2));
-
-export default configObj;
