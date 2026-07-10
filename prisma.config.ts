@@ -13,6 +13,7 @@ envs.forEach((file) => {
 console.log("--- DEBUG PRISMA CONFIG ---");
 console.log("process.cwd():", process.cwd());
 console.log("DATABASE_URL length:", process.env.DATABASE_URL ? process.env.DATABASE_URL.length : "undefined");
+console.log("DATABASE_URL value:", process.env.DATABASE_URL);
 console.log("----------------------------");
 
 const databaseUrl = process.env.DATABASE_URL;
