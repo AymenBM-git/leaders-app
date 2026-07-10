@@ -22,7 +22,7 @@ if (!databaseUrl) {
   throw new Error("DATABASE_URL is not defined in environment files");
 }
 
-export default defineConfig({
+const configObj = defineConfig({
   schema: 'prisma/schema.prisma',
   migrations: {
     path: 'prisma/migrations',
@@ -31,3 +31,7 @@ export default defineConfig({
     url: databaseUrl,
   },
 });
+
+console.log("Config object:", JSON.stringify(configObj, null, 2));
+
+export default configObj;
