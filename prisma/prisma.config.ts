@@ -8,6 +8,11 @@ envs.forEach((file) => {
   config({ path: path.resolve(process.cwd(), file) });
 });
 
+console.log("--- DEBUG PRISMA CONFIG ---");
+console.log("process.cwd():", process.cwd());
+console.log("DATABASE_URL length:", process.env.DATABASE_URL ? process.env.DATABASE_URL.length : "undefined");
+console.log("----------------------------");
+
 export default defineConfig({
   schema: 'prisma/schema.prisma',
   migrations: {
