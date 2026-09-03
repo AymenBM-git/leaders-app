@@ -16,6 +16,7 @@ export default function TeacherDetailsPage({ params }: { params: Promise<{ id: s
     const unwrappedParams = use(params);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
     const [teacher, setTeacher] = useState<any>(null);
     const [user, setUser] = useState<any>(null); // To store linked user info
     const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -104,6 +105,24 @@ export default function TeacherDetailsPage({ params }: { params: Promise<{ id: s
         }
     };
 
+    const handleDelete = async () => {
+        if (!confirm(`Êtes-vous sûr de vouloir supprimer l'enseignant "${teacher?.name}" ? Cette action est irréversible.`)) return;
+        setIsDeleting(true);
+        try {
+            const res = await fetch(`/api/teachers/${unwrappedParams.id}`, {
+                method: "DELETE",
+            });
+            if (!res.ok) throw new Error("Failed to delete teacher");
+            router.push("/teachers");
+            router.refresh();
+        } catch (error) {
+            console.error(error);
+            alert("Erreur lors de la suppression");
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
     const handlePasswordReset = async (e: React.FormEvent) => {
         e.preventDefault();
         setPasswordError("");
@@ -158,11 +177,17 @@ export default function TeacherDetailsPage({ params }: { params: Promise<{ id: s
                         <p className="text-slate-500 text-sm">ID: {teacher.id}</p>
                     </div>
                 </div>
-                {/* Delete button (placeholder for now) */}
-                {!isReadOnly && <button className="px-4 py-2 rounded-xl bg-red-50 text-red-600 font-medium hover:bg-red-100 hover:text-red-700 transition-colors flex items-center gap-2">
-                    <Trash2 className="w-4 h-4" />
-                    Supprimer
-                </button>}
+                {!isReadOnly && (
+                    <button
+                        type="button"
+                        onClick={handleDelete}
+                        disabled={isDeleting}
+                        className="px-4 py-2 rounded-xl bg-red-50 text-red-600 font-medium hover:bg-red-100 hover:text-red-700 transition-colors flex items-center gap-2 disabled:opacity-60"
+                    >
+                        {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                        {isDeleting ? "Suppression..." : "Supprimer"}
+                    </button>
+                )}
             </div>
 
 
